@@ -1,6 +1,6 @@
 /**
  * @fileoverview This Enum defines the type of data that is sent from
- * client <--> server over the websocket connection. 
+ * client <--> server over the websocket connection.
  */
 const MessageType = {
     USERNAME: "username",
@@ -13,3 +13,5 @@ const MessageType = {
     NEXTTURN: "nextturn",
     LOBBYSTATE: "lobbystate",
 }
+
+module.exports = MessageType;

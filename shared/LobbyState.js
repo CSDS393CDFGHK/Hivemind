@@ -9,3 +9,5 @@ const MessageType = {
     GAME: "game",
     GAMEEND: "gameend",
 }
+
+module.exports = MessageType;

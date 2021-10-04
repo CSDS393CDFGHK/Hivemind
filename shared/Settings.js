@@ -17,5 +17,23 @@ function Settings(turnTimeLimit, gameLength) {
  * @return {String}
  */
 Settings.prototype.toJSON = function() {
-    return JSON.stringify(this);
+    // If you pass the object itself with "this", it will stringify the function names which we don't want
+    properties = {
+        turnTimeLimit: this.turnTimeLimit,
+        gameLength: this.gameLength,
+    }
+    return JSON.stringify(properties);
 }
+
+/**
+ * Static method to convert a json string to a Settings object.
+ * @param {String} json
+ * @return {Settings}
+ */
+Settings.fromJSON = function(json) {
+    // Need to transfer bare data to an actual object
+    data = JSON.parse(json);
+    return new Settings(data.turnTimeLimit, data.gameLength);
+}
+
+module.exports = Settings;
