@@ -6,12 +6,12 @@ const MessageType = {
     USERNAME: "username",
     SETTINGS: "settings",
     READY: "ready",
-    PLAYERJOIN: "playerjoin",
-    PLAYERLEAVE: "playerleave",
+    PLAYER_JOIN: "player_join",
+    PLAYER_LEAVE: "player_leave",
     WORD: "word",
-    PLAYERDATA: "playerdata",
-    NEXTTURN: "nextturn",
-    LOBBYSTATE: "lobbystate",
+    PLAYER_DATA: "player_data",
+    NEXT_TURN: "next_turn",
+    LOBBY_STATE: "lobby_state",
 }
 
 module.exports = MessageType;

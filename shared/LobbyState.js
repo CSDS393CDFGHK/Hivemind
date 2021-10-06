@@ -7,7 +7,7 @@
 const MessageType = {
     LOBBY: "lobby",
     GAME: "game",
-    GAMEEND: "gameend",
+    GAME_END: "game_end",
 }
 
 module.exports = MessageType;
