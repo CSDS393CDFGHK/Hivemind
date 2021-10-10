@@ -4,10 +4,10 @@
  * Game: Players are playing the game.
  * GameEnd: The game has ended, players wait for the Lobby Owner to bring them back to the lobby.
  */
-const MessageType = {
+const LobbyState = {
     LOBBY: "lobby",
     GAME: "game",
     GAME_END: "game_end",
 }
 
-module.exports = MessageType;
+module.exports = LobbyState;
