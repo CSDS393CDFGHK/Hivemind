@@ -5,13 +5,15 @@
 /**
  * @constructor
  * @param {String} lobbyID The lobby's unique id
+ * @param {String} owner The owner of the lobby
  */
- function Lobby(lobbyID) {
+ function Lobby(lobbyID, owner) {
     this.lobbyID = lobbyID; // The lobby's unique id
     this.players = {}; // The collection of Players in this lobby
     this.sockets = {}; // A dictionary of websockets, indexed by player's id
     this.settings = new Settings(20, 8); // Game settings, initialized to defaults
     this.state = LobbyState.LOBBY; // All games start in the lobby
+    this.owner = owner; // The owner of the lobby
 }
 
 /**

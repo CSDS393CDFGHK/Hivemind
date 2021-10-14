@@ -8,14 +8,12 @@
  * @param {String} username Display name of this player
  * @param {int} color Stores player's color as in integer representation of hex code
  * @param {Boolean} ready Is this player ready to start the game
- * @param {isOwner} isOwner Is this player the owner of the lobby
  */
- function Player(id, username, color, ready, isOwner) {
+ function Player(id, username, color, ready) {
     this.id = id;
     this.username = username;
     this.color = color;
     this.ready = ready;
-    this.isOwner = isOwner;
 }
 
 /**
@@ -28,7 +26,7 @@ Player.prototype.toJSON = function() {
         username: this.username,
         color: this.color,
         ready: this.ready,
-        isOwner: this.isOwner,
+        id: this.id
     }
     return JSON.stringify(properties);
 }
@@ -43,7 +41,7 @@ Player.fromJSON = function(json) {
     // The id's of other players are not transfered in json, nor are they needed
     // on the client side, so id will be set to 0
     data = JSON.parse(json);
-    return new Player(0, data.username, data.color, data.ready, data.isOwner);
+    return new Player(0, data.username, data.color, data.ready, id.ready);
 }
 
 module.exports = Player;

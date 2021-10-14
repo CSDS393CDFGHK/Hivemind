@@ -14,7 +14,7 @@
         ws.onopen = function() {
 
           // Web Socket is connected, send data using send()
-          ws.send("Message to send");
+          ws.send('{"targetID":23,"sourceID":23,"type":"create_lobby","lobbyID":23,"data":{"hello":3}}');
           alert("Message is sent...");
         };
 
