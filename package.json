@@ -4,7 +4,7 @@
   "description": "",
   "main": "server.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "mocha",
     "start": "node server.js"
   },
   "repository": {
@@ -16,5 +16,9 @@
   "bugs": {
     "url": "https://github.com/CSDS393CDFGHK/Hivemind/issues"
   },
-  "homepage": "https://github.com/CSDS393CDFGHK/Hivemind#readme"
+  "homepage": "https://github.com/CSDS393CDFGHK/Hivemind#readme",
+  "dependencies": {
+    "mocha": "^9.1.2",
+    "ws": "^8.2.3"
+  }
 }
