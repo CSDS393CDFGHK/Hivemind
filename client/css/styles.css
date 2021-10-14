@@ -48,6 +48,26 @@ p {
 	margin-bottom: 2em;
 }
 
+.players .container {
+	display: grid;
+	grid-template-columns: 1fr 1fr 1fr 1fr 1fr 1fr 1fr;
+	width: 70%;
+	max-width: 60em;
+	padding: 1.5em;
+	text-align: center;
+	margin-bottom: 2em;
+}
+
+.player .container {
+	margin: .2em;
+	font-size: 1em;
+	display: inline-block;
+	width: 5em;
+	transform: none;
+	left: 0%;
+	padding: .5em;
+}
+
 .button {
   background-color: #4CAF50; /* Green */
   border: none;
@@ -62,4 +82,12 @@ p {
 
 .button:hover {
   box-shadow: 0 12px 16px 0 rgba(0,0,0,0.24), 0 17px 50px 0 rgba(0,0,0,0.19);
+}
+
+.dot {
+  height: 25px;
+  width: 25px;
+  background-color: blue;
+  border-radius: 50%;
+  display: inline-block;
 }
