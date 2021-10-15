@@ -2,12 +2,17 @@
  * @fileoverview Client.js handles client-side sockets and events.
  */
 
+const SERVER_WS_LOCATION = 'ws://3.144.98.109/nodejs/'; //not permanent, but where it's located now
+let socket = new WebSocket(SERVER_WS_LOCATION);
+socket.onopen = onOpen(socket);
+socket.onmessage = onMessage(event);
+socket.onclose = onClose(event);
 /**
  * Called when websocket makes connection
  * @param {Socket} socket The socket that is being opened
  */
  function onOpen(socket){
-    // does socket stuff
+    //probably should 
 }
 
 /**
@@ -40,7 +45,7 @@ function onMessage(msg){
  * @return {Boolean} Returns boolean representing message sending success
  */
 function sendMessage(lobbyID, msg){
-
+    
 }
 
 /**  Called when the server indicates the game has begun. Starts the game on the client's page. */
