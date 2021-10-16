@@ -48,13 +48,21 @@ p {
 	margin-bottom: 2em;
 }
 
-.players .container {
+.lobby .container {
 	display: grid;
-	grid-template-columns: 1fr 1fr 1fr 1fr 1fr 1fr 1fr;
+	grid-template-columns: 1fr 1fr 1fr .25fr 1fr 1fr 1fr;
 	width: 70%;
 	max-width: 60em;
 	padding: 1.5em;
-	text-align: center;
+	margin-bottom: 2em;
+}
+
+.game .container {
+	display: grid;
+	grid-template-columns: 1fr 1fr 1fr 1fr 1fr .25fr 1fr;
+	width: 70%;
+	max-width: 60em;
+	padding: 1.5em;
 	margin-bottom: 2em;
 }
 
@@ -62,7 +70,7 @@ p {
 	margin: .2em;
 	font-size: 1em;
 	display: inline-block;
-	width: 5em;
+	width: auto-fit;
 	transform: none;
 	left: 0%;
 	padding: .5em;
@@ -90,4 +98,8 @@ p {
   background-color: blue;
   border-radius: 50%;
   display: inline-block;
+}
+
+.in-game-text:hover {
+	text-decoration: underline;
 }
