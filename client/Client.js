@@ -2,17 +2,26 @@
  * @fileoverview Client.js handles client-side sockets and events.
  */
 
-const SERVER_WS_LOCATION = 'ws://3.144.98.109/nodejs/'; //not permanent, but where it's located now
+const SERVER_WS_LOCATION = 'ws://3.144.98.109/Hivemind/startup/'; //not permanent, but where it's located now
 let socket = new WebSocket(SERVER_WS_LOCATION);
-socket.onopen = onOpen(socket);
-socket.onmessage = onMessage(event);
-socket.onclose = onClose(event);
+socket.onopen = function(e) {
+	onOpen(socket);
+}
+socket.onmessage = function(event) {
+	onMessage(event);
+}
+socket.onclose = function(event) {
+	onClose(socket);
+}
+
+
 /**
  * Called when websocket makes connection
  * @param {Socket} socket The socket that is being opened
  */
- function onOpen(socket){
-    //probably should 
+ function onOpen(socket){	
+	console.log("here");
+	socket.send("Opening");
 }
 
 /**
@@ -20,15 +29,16 @@ socket.onclose = onClose(event);
  * @param {Socket} socket The socket that is being closed
  */
 function onClose(socket){
-    // does socket stuff
+    socket.send("Closing");
 }
 
 /**
  * Called when the websocket sends/receives a JSON message
  * @param {Message} msg The incoming msg
  */
-function onMessage(msg){
-    // does the right stuff with the message
+function onMessage(Message){
+	document.getElementById("main").innerHTML = "Number of active users: " + Message.data;
+
 }
 
 /**
