@@ -8,17 +8,13 @@ const ws = require('ws');
 const SERVER_PORT = 8000; 
 const wss = new ws.Server( { noServer: true });
 var count = 0;
-<<<<<<< HEAD
 var lobbies = [];
-=======
->>>>>>> refs/remotes/origin/serverSetup
 
 function accept(req, res) {
   if (!req.headers.upgrade || req.headers.upgrade.toLowerCase() != 'websocket') {
     res.end();
     return;
   }
-<<<<<<< HEAD
 
   if (!req.headers.connection.match(/\bupgrade\b/i)) {
     res.end();
@@ -60,7 +56,6 @@ function onConnect(ws) {
 		});
 }
 
-=======
 
   if (!req.headers.connection.match(/\bupgrade\b/i)) {
     res.end();
@@ -96,7 +91,6 @@ function onConnect(ws) {
 		});
 }
 
->>>>>>> refs/remotes/origin/serverSetup
 if (!module.parent) {
   http.createServer(accept).listen(SERVER_PORT);
 } else {
