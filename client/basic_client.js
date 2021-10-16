@@ -1,4 +1,3 @@
-//some page switching 
 /**
  * @fileoverview Client.js handles client-side sockets and events.
  */
@@ -15,28 +14,13 @@ socket.onclose = function(event) {
 	onClose(socket);
 }
 
-//hide Lobby stuff initially
-var lobby = document.getElementById('lobby');
-lobby.style.display = 'none';
-var ready = document.getElementById('ready');
-ready.style.display = 'none';
-var button = document.getElementById('CreateLobby'); 
-//when button is clicked, hide landing page and display lobby and ready button.
-//Send msg to server indicating that we want a lobby created.
-button.onclick = function() {
-	socket.send("Create Lobby");
-    var landing = document.getElementById('landing');
-    landing.style.display = 'none';
-    ready.style.display = 'block';
-    lobby.style.display = 'block';
-};
-
 
 /**
  * Called when websocket makes connection
  * @param {Socket} socket The socket that is being opened
  */
  function onOpen(socket){	
+	console.log("here");
 	socket.send("Opening");
 }
 
@@ -53,11 +37,8 @@ function onClose(socket){
  * @param {Message} msg The incoming msg
  */
 function onMessage(Message){
-	console.log(Message.data);
-	//if the first word of the response is "L_CREATED"
-	if (Message.data.split(" ")[0] == "L_CREATED:") {
-		alert(Message.data);
-	}
+	document.getElementById("main").innerHTML = "Number of active users: " + Message.data;
+
 }
 
 /**
