@@ -15,6 +15,7 @@ socket.onclose = function(event) {
 	onClose(socket);
 }
 
+<<<<<<< HEAD
 //hide Lobby stuff initially
 var lobby = document.getElementById('lobby');
 lobby.style.display = 'none';
@@ -31,12 +32,18 @@ button.onclick = function() {
     lobby.style.display = 'block';
 };
 
+=======
+>>>>>>> refs/remotes/origin/serverSetup
 
 /**
  * Called when websocket makes connection
  * @param {Socket} socket The socket that is being opened
  */
  function onOpen(socket){	
+<<<<<<< HEAD
+=======
+	console.log("here");
+>>>>>>> refs/remotes/origin/serverSetup
 	socket.send("Opening");
 }
 
@@ -53,11 +60,16 @@ function onClose(socket){
  * @param {Message} msg The incoming msg
  */
 function onMessage(Message){
+<<<<<<< HEAD
 	console.log(Message.data);
 	//if the first word of the response is "L_CREATED"
 	if (Message.data.split(" ")[0] == "L_CREATED:") {
 		alert(Message.data);
 	}
+=======
+	document.getElementById("main").innerHTML = "Number of active users: " + Message.data;
+
+>>>>>>> refs/remotes/origin/serverSetup
 }
 
 /**
