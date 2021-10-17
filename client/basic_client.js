@@ -19,11 +19,11 @@ socket.onclose = function(event) {
  * Called when websocket makes connection
  * @param {Socket} socket The socket that is being opened
  */
- function onOpen(socket){	
+function onOpen(socket){	
 	console.log("here");
-	socket.send("Opening");
-}
+	socket.send('{"targetID":23, "sourceID":23, "type":"create_lobby", "lobbyID":23, "data": {"hello":3}}');
 
+}
 /**
  * Called when socket is closed
  * @param {Socket} socket The socket that is being closed
@@ -37,7 +37,7 @@ function onClose(socket){
  * @param {Message} msg The incoming msg
  */
 function onMessage(Message){
-	document.getElementById("main").innerHTML = "Number of active users: " + Message.data;
+	document.getElementById("main").innerHTML = "Generated player IDs: " + Message.data;
 
 }
 

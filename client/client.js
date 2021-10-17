@@ -36,9 +36,9 @@ button.onclick = function() {
  * Called when websocket makes connection
  * @param {Socket} socket The socket that is being opened
  */
- function onOpen(socket){	
-	console.log("here");
-	socket.send("Opening");
+function onOpen(socket){	
+	//socket.send("Opening");
+
 }
 
 /**
@@ -59,7 +59,6 @@ function onMessage(Message){
 	if (Message.data.split(" ")[0] == "L_CREATED:") {
 		alert(Message.data);
 	}
-	document.getElementById("main").innerHTML = "Number of active users: " + Message.data;
 }
 
 /**
