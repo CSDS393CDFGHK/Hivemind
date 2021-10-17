@@ -2,6 +2,9 @@
  * @fileoverview The lobby is in charge of all aspects of a single group of people.
  */
 
+const Settings = require("../shared/Settings.js");
+const LobbyState = require("../shared/LobbyState.js");
+
 /**
  * @constructor
  * @param {String} lobbyID The lobby's unique id
@@ -9,7 +12,7 @@
  */
  function Lobby(lobbyID, owner) {
     this.lobbyID = lobbyID; // The lobby's unique id
-    this.players = {}; // The collection of Players in this lobby
+    this.players = new Set(); // The collection of Players in this lobby
     this.sockets = {}; // A dictionary of websockets, indexed by player's id
     this.settings = new Settings(20, 8); // Game settings, initialized to defaults
     this.state = LobbyState.LOBBY; // All games start in the lobby
@@ -103,3 +106,5 @@ Lobby.prototype.getPlayer = function(id) {
 Lobby.prototype.getSocket = function(id) {
 
 }
+
+module.exports = Lobby;
