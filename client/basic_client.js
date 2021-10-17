@@ -37,7 +37,7 @@ function onClose(socket){
  * @param {Message} msg The incoming msg
  */
 function onMessage(Message){
-	document.getElementById("main").innerHTML = "Generated player IDs: " + Message.data;
+	document.getElementById("main").innerHTML = Message.data;
 
 }
 
