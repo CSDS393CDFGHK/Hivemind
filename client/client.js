@@ -21,15 +21,32 @@ lobby.style.display = 'none';
 var ready = document.getElementById('ready');
 ready.style.display = 'none';
 var button = document.getElementById('CreateLobby'); 
+
+
 //when button is clicked, hide landing page and display lobby and ready button.
 //Send msg to server indicating that we want a lobby created.
-button.onclick = function() {
-	socket.send("Create Lobby");
+button.onclick = onCreateLobbyClick;
+
+ready.onclick = onReadyClick;
+
+
+/**
+ * Called when you click the "Create Lobby" button the main page
+ */
+function onCreateLobbyClick() {
+	socket.send('{"targetID":23, "sourceID":23, "type":"create_lobby", "lobbyID":23, "data": {"hello":3}}');
     var landing = document.getElementById('landing');
     landing.style.display = 'none';
     ready.style.display = 'block';
     lobby.style.display = 'block';
-};
+}
+
+/**
+ * Called when you click the "Ready" button in the lobby
+ */
+function onReadyClick() {
+	socket.send('{"targetID":23, "sourceID":23, "type":"ready", "lobbyID":23, "data": {"hello":3}}');
+}
 
 
 /**
@@ -37,8 +54,7 @@ button.onclick = function() {
  * @param {Socket} socket The socket that is being opened
  */
 function onOpen(socket){	
-	//socket.send("Opening");
-
+	//might not need anything here
 }
 
 /**

@@ -2,7 +2,6 @@
  * @fileoverview The server is in charge of serving webpages, managing Lobby objects,
  * and handling/passing websocket data to the correct lobby.
  */
-// Doing things OO-style makes updating instance variables while handling websockets messier than it needs to be, so we'll keep this procedural.
 const http = require('http');
 const ws = require('ws');
 const Message = require("../shared/Message.js");
@@ -10,15 +9,11 @@ const MessageType = require("../shared/MessageType.js");
 const Player = require("../shared/Player.js");
 const Lobby = require("../server/Lobby.js");
 
+
 const SERVER_PORT = 8000; 
 const wss = new ws.Server( { noServer: true });
-var count = 0;
 let lobbies = [];
-let players = [];
-
-//to manage all active socket connections
-
-
+let socketToPlayer= new Map();
 
 
 function accept(req, res) {
@@ -26,74 +21,171 @@ function accept(req, res) {
     res.end();
     return;
   }
-
   if (!req.headers.connection.match(/\bupgrade\b/i)) {
     res.end();
     return;
   }
-
-  wss.handleUpgrade(req, req.socket, Buffer.alloc(0), onConnect);
+  wss.handleUpgrade(req, req.socket, Buffer.alloc(0), onSocketAction);
 }
 
-function onConnect(ws) {
-		ws.on('message', function message(msg) {
+function onSocketAction(ws) {
+	ws.on('message', function message(msg) {
+		/*
+		if (isStringMessage(msg)) {
+			handleStringMessage(msg, ws);
+		}
+		*/
+		let message = Message.fromJSON(msg);
+		switch (message.type) {
+			case MessageType.USERNAME:
+				handleUsernameMsg(ws, message);
+				break;
 
-			//THIS CODE DOES NOT USE HIVEMIND MESSAGE BUT STRINGS, ONLY TO KEEP HTML STUFF WORKING
-			/*----------------------*/
-			if (msg== "Opening") {
-				count++;
-				wss.clients.forEach(function each(client) {
-					client.send(count);
-				});
-			}
-			//handles closing when not leaving page.
-			else if (msg == "Closing") {
-				count--;
-				wss.clients.forEach(function each(client) {
-					client.send(count);
-				});
-			}
-			else if (msg == "Create Lobby") {
-				console.log("here");
-				lobbies.push("this is a lobby");
-				ws.send("L_CREATED: The server has recognized that you created a lobby. " + lobbies.length + " lobbies have been created since last server restart.");
-			}
-			/*----------------------*/
+			case MessageType.CREATE_LOBBY:
+				handleCreateLobbyMsg(ws, message);
+				break;
 
-			//if the message wasn't taken care of above, it's a real message
-			else {
-				let message = Message.fromJSON(msg);
-				if (message.type == MessageType.CREATE_LOBBY) {
-					p = new Player(generateRandomString(8), "", "", false);
-					players.push([p, ws]);
-					createLobby(message.lobbyID, p);
-				}
-			}
-			wss.clients.forEach(function each(client) {
-				let str = "";
-				players.forEach(player => str += player[0].id + '\t');
-				client.send(str);
-			});
+			case MessageType.SETTINGS:
+				handleSettingsMsg(ws, message);
+				break;
 
-		});
+			case MessageType.READY:
+				handleReadyMsg(ws, message);
+				break;
 
-		ws.on('close', function close() {
-			//if websocket is closed, filter it out of list
-			//playersToSockets = playersToSockets.filter(player => player[1].readyState === ws.CLOSED);
-			wss.clients.forEach(function each(client) {
-				let str = "";
-				players.forEach(player => str += player[0].id + '\t');
-				client.send(str);
-			});
-		});
+			case MessageType.PLAYER_JOIN:
+				handlePlayerJoinMsg(ws, message);
+				break;
+
+			case MessageType.PLAYER_LEAVE:
+				handlePlayerLeaveMsg(ws, message);
+				break;
+
+			case MessageType.WORD:
+				handleWordMsg(ws, message);
+				break;
+
+			case MessageType.LOBBY_ID:
+				handlLobbyIDMsg(ws, message);
+				break;
+
+			case MessageType.PLAYER_DATA:
+				handlePlayerDataMsg(ws, message);
+				break;
+
+			case MessageType.NEXT_TURN:
+				handleNextTurnMsg(ws, message);
+				break;
+
+			case MessageType.LOBBY_STATE:
+				handleLobbyStateMsg(ws, message);
+				break;
+			
+			default:
+				throw new Error('Recieved Unknown Message Type: ' + message.type);
+			
+		}
+		sendAllActivePlayerIDs();
+	});
+
+	ws.on('close', function close() {
+		socketToPlayer.delete(ws);
+		sendAllActivePlayerIDs();
+	});
+}
+
+
+function startServer() {
+	if (!module.parent) {
+  		http.createServer(accept).listen(SERVER_PORT);
+	} else {
+  		exports.accept = accept;
+	}
+}
+
+startServer();
 
 
 
+//Message-handling functions
+/*---------------------------------*/
+
+/**
+ * Note: If you want to see logs on the server, type "sudo pm2 logs 0". You can see old console.logs
+ * and also new ones as they're printed.
+ */
+function handleUsernameMsg(ws, msg) {
+	console.log("server recieved a Username message");
+}
+
+function handleSettingsMsg(ws, msg) {
+	console.log("server recieved a Settings message");
+}
+
+function handleReadyMsg(ws, msg) {
+	console.log("server recieved a Ready message");
+}
+
+function handlePlayerJoinMsg(ws, msg) {
+	console.log("server recieved a Player_Join message");
+}
+
+function handlePlayerLeaveMsg(ws, msg) {
+	console.log("server recieved a Player_Leave message");
+}
+
+function handWordMsg(ws, msg) {
+	console.log("server recieved a Word message");
+}
+
+function handleCreateLobbyMsg(ws, msg) {
+	console.log("server recieved a Create_Lobby message");
+	//make new player, map socket to player, create a lobby specified by msg
+	//Just temp code, switch this to whatever actually needs to happen on backend
+	p = new Player(generateRandomString(8), "", "", false);
+	socketToPlayer.set(ws, p.id);
+	createLobby(msg.lobbyID, p);
+}
+
+function handleLobbyIDMsg(ws, msg) {
+	console.log("server recieved a Lobby_ID message");
+}
+
+function handlePlayerDataMsg(ws, msg) {
+	console.log("server recieved a Player_Data message");
+}
+
+function handleNextTurnMsg(ws, msg) {
+	console.log("server recieved a Next_Turn message");
+}
+
+function handleLobbyStateMsg(ws, msg) {
+	console.log("server recieved a Lobby_State message");
+}
+
+/*---------------------------------*/
+
+
+//helper functions
+/*---------------------------------*/
+
+function sendAllActivePlayerIDs() {
+	let s = getAllActivePlayerIDs();
+	wss.clients.forEach(function each(client) {
+		client.send("Your ID: " + socketToPlayer.get(client) + " Everyone: " + s);
+	});
+}
+
+function getAllActivePlayerIDs() {
+	let str = "";
+	wss.clients.forEach(function each(client) {
+		str += socketToPlayer.get(client) + " ";
+	});
+	return str;
 }
 
 function generateRandomCharacter() {
     const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-
     return alphabet[Math.floor(Math.random() * alphabet.length)];
 }
 
@@ -108,15 +200,36 @@ function generateRandomString(length) {
 
 function createLobby(lobbyID, owner) {
     let l = new Lobby(lobbyID, owner);
-    // let lobby = new Lobby(generateRandomString(8), p.id);
-    // lobby = new Lobby("", "");	
     (l.players).add(p);
     lobbies.push(l);
    // console.log(lobby.owner);
 }
 
-if (!module.parent) {
-  http.createServer(accept).listen(SERVER_PORT);
-} else {
-  exports.accept = accept;
+function handleStringMessage(msg, ws) {
+	if (msg== "Opening") {
+		count++;
+		wss.clients.forEach(function each(client) {
+			client.send(count);
+		});
+	}
+	//handles closing when not leaving page.
+	else if (msg == "Closing") {
+		count--;
+		wss.clients.forEach(function each(client) {
+			client.send(count);
+		});
+	}
+	else if (msg == "Create Lobby") {
+		console.log("here");
+		lobbies.push("this is a lobby");
+		ws.send("L_CREATED: The server has recognized that you created a lobby. " + lobbies.length + " lobbies have been created since last server restart.");
+	}
 }
+
+function isStringMessage(msg) {
+	return msg == "Opening" || msg == "Closing" || msg == "Create Lobby";
+}
+
+/*---------------------------------*/
+
+
