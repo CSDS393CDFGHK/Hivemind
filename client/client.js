@@ -108,6 +108,7 @@ function addPlayerDivs(players, numPlayers) {
 		if (i == 0) {
 			//expose the player0 div, edit the player name 
 			document.getElementById('player0').style.display = 'block';
+			document.getElementById('player0').style.gridColumnStart = "5";
 			document.getElementsByClassName('name')[0].textContent = players[i] //get the correct div, name field within div
 		}
 		else {
@@ -119,7 +120,7 @@ function addPlayerDivs(players, numPlayers) {
 
 function createPlayerDiv(player, lastPlayerCreated) {
 	//get the last made player div
-	var original = document.getElementById('player' + lastPlayerCreated);
+	var original = document.getElementById('player' + 0);
 
 	//copy the div, change its ID, append it 
 	var clone = original.cloneNode(true);
@@ -128,6 +129,9 @@ function createPlayerDiv(player, lastPlayerCreated) {
 
 	//get the 'name' field, change it to be this players id
 	document.getElementById(clone.id).getElementsByClassName('name')[0].textContent = player;
+	if ((lastPlayerCreated+1) % 3 != 0) {
+		document.getElementById(clone.id).style.gridColumnStart = "auto";
+	}
 }
 
 /**
