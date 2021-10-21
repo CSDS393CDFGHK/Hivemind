@@ -72,52 +72,63 @@ function onClose(socket){
  * @param {Message} msg The incoming msg
  */
  function websocketCallback(msg) {
-	 //console.log(msg.data);
-	 //if msg is player leave/player join, need to refresh. Only response currently
+	 //if msg is player leave/player join, need to refresh. Only operation currently supported.
 	refreshPlayersInLobby(msg);
 }
 
 /**
  * Update the players in lobby based on the number of active connections.
+ * Update by removing all, and then adding all back
  * @param {Message} msg The incoming msg
  */
 function refreshPlayersInLobby(msg) {
 	const ar = msg.data.split(" ");
-	
-	//Cut off the "Your ID: Everyone" portion, get only the players
+
+	//Cut off the "Your ID: Everyone" portion, get only the players.
 	const players = ar.slice(4, -1);
-	console.log(players);
+	const myID = ar[2];
 	const numPlayers = players.length;
 
+	removePlayerDivs(numPlayers);
+
+	addPlayerDivs(players, numPlayers);
+}
+
+function removePlayerDivs(numPlayers) {
 	//set OG player to invisible, delete rest of them
 	document.getElementById('player0').style.display = 'none';
-	for (let i = 1; i <= numPlayers; i++) { //= to get leaving players
+	for (let i = 1; i <= numPlayers; i++) {
 		if (document.getElementById('player' + i) !== null)
 			document.getElementById('player' + i).remove();
 	}
+}
 
-	var i = -1;
-	for (const player in players) {
-		if (i == -1) {
-			//expose the player0 div, edit the name 
+function addPlayerDivs(players, numPlayers) {
+	//(i - 1) = id of last player div displayed (i.e. when i == 0, no player divs have been displayed)
+	for (let i = 0; i < numPlayers; i++) {
+		if (i == 0) {
+			//expose the player0 div, edit the player name 
 			document.getElementById('player0').style.display = 'block';
-			++i;
+			document.getElementsByClassName('name')[0].textContent = players[i] //get the correct div, name field within div
 		}
 		else {
-			createPlayerDiv(player, i);
-			i++;
+			//create div for new player 
+			createPlayerDiv(players[i], i - 1);
 		}
 	}
 }
 
-function createPlayerDiv(player, i) {
-	var original = document.getElementById('player' + i);
-	if (original != null) {
-	var clone = original.cloneNode(true); // "deep" clone
-	clone.id = "player" + (i + 1); // there can only be one element with an ID
+function createPlayerDiv(player, lastPlayerCreated) {
+	//get the last made player div
+	var original = document.getElementById('player' + lastPlayerCreated);
+
+	//copy the div, change its ID, append it 
+	var clone = original.cloneNode(true);
+	clone.id = "player" + (lastPlayerCreated + 1); // there can only be one element with an ID
 	original.parentNode.appendChild(clone);
-	console.log(clone.id);
-	}
+
+	//get the 'name' field, change it to be this players id
+	document.getElementById(clone.id).getElementsByClassName('name')[0].textContent = player;
 }
 
 /**
