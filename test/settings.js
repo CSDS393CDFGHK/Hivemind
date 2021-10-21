@@ -12,5 +12,5 @@ describe('Settings', function() {
   it("Should convert from JSON to an equal object", function() {
     assert.deepStrictEqual(Settings.fromJSON(s.toJSON()), s);
   });
-  
+
 });
