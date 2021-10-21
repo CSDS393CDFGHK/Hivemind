@@ -25,6 +25,8 @@ function initialize() {
 	var createLobby = document.getElementById('CreateLobby'); 
 	var player = document.getElementById('player0');
 	player.style.display = 'none';
+	var readyButton = document.getElementById('readyButton');
+	readyButton.style.display = 'none';
 
 
 	//give buttons functionality
@@ -40,6 +42,7 @@ function onCreateLobbyClick() {
     var landing = document.getElementById('landing');
     landing.style.display = 'none';
     lobby.style.display = 'block';
+	ready.style.display = 'block';
 }
 
 /**
