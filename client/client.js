@@ -39,7 +39,6 @@ function onCreateLobbyClick() {
 	socket.send('{"targetID":23, "sourceID":23, "type":"create_lobby", "lobbyID":23, "data": {"hello":3}}');
     var landing = document.getElementById('landing');
     landing.style.display = 'none';
-    ready.style.display = 'block';
     lobby.style.display = 'block';
 }
 
@@ -176,9 +175,10 @@ function onChangeSettings(){
 /**
  * Checks to see if a username is valid 
  * @param {String} word The string that the user has input
- * @param {Player} p The player that input the word
  * @return {Boolean} Returns whether the username was valid
  * */ 
-function validUsername(word, p){
-
+function validUsername(word){
+	word = word.trim();
+	if(/^[\x00-\x7F]+$/.test(word)===false) return false;
 }
+
