@@ -116,23 +116,23 @@ function addPlayerDivs(players, numPlayers) {
 		}
 		else {
 			//create div for new player 
-			createPlayerDiv(players[i], i - 1);
+			createPlayerDiv(players[i], i);
 		}
 	}
 }
 
-function createPlayerDiv(player, lastPlayerCreated) {
+function createPlayerDiv(player, playerid) {
 	//get the last made player div
 	var original = document.getElementById('player' + 0);
 
 	//copy the div, change its ID, append it 
 	var clone = original.cloneNode(true);
-	clone.id = "player" + (lastPlayerCreated + 1); // there can only be one element with an ID
+	clone.id = "player" + (playerid); // there can only be one element with an ID
 	original.parentNode.appendChild(clone);
 
 	//get the 'name' field, change it to be this players id
 	document.getElementById(clone.id).getElementsByClassName('name')[0].textContent = player;
-	if ((lastPlayerCreated+1) % 3 != 0) {
+	if ((playerid) % 3 != 0) {
 		document.getElementById(clone.id).style.gridColumnStart = "auto";
 	}
 }
