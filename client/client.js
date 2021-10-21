@@ -184,5 +184,6 @@ function onChangeSettings(){
 function validUsername(word){
 	word = word.trim();
 	if(/^[\x00-\x7F]+$/.test(word)===false) return false;
+	else return true;
 }
 
