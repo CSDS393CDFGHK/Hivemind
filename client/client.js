@@ -26,7 +26,7 @@ function initialize() {
 	var player = document.getElementById('player0');
 	player.style.display = 'none';
 	var readyButton = document.getElementById('readyButton');
-	readyButton.style.display = 'none';
+
 
 
 	//give buttons functionality
