@@ -61,6 +61,7 @@ UniqueColorPicker.prototype.freeColor = function(color) {
    for (let i = 0; i < this.getNumColors(); i++) {
       if (this.colors[i] == color) {
          this.available[i] = true;
+         return;
       }
    }
    // Should never get down here
