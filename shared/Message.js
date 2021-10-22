@@ -47,22 +47,4 @@ Message.fromJSON = function(json) {
     return new Message(data.targetID, data.sourceID, data.type, data.lobbyID, data.data);
 }
 
-/**
- * Checks if this message object is equal to another
- * @param {Message} o The other message object
- * @return {bool}
- */
-Message.prototype.equals = function(o) {
-    return (
-        this.targetID == o.targetID &&
-        this.sourceID == o.sourceID &&
-        this.type == o.type &&
-        this.lobbyID == o.lobbyID &&
-        // Objects are references, so have to get fancy. see:
-        // www.samanthaming.com/tidbits/33-how-to-compare-2-objects/
-        // This will not work if object properties' order differ
-        JSON.stringify(this.data) === JSON.stringify(o.data)
-    );
-}
-
 module.exports = Message;

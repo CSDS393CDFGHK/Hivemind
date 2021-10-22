@@ -23,8 +23,8 @@
  * @return {String}
  */
 Player.prototype.toJSON = function() {
-    // The id is private, only send the other data    
     properties = {
+        id: this.id,
         username: this.username,
         color: this.color,
         ready: this.ready,
@@ -40,10 +40,8 @@ Player.prototype.toJSON = function() {
  */
 Player.fromJSON = function(json) {
     // Need to transfer bare data to an actual object
-    // The id's of other players are not transfered in json, nor are they needed
-    // on the client side, so id will be set to 0
     data = JSON.parse(json);
-    return new Player(0, data.username, data.color, data.ready, data.isOwner);
+    return new Player(data.id, data.username, data.color, data.ready, data.isOwner);
 }
 
 module.exports = Player;
