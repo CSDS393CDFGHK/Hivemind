@@ -111,7 +111,7 @@ startServer();
  */
 function handleUsernameMsg(ws, msg) {
 	console.log("server recieved a Username message");
-	socketToPlayer.get(ws).id = JSON.stringify(msg.data);
+	socketToPlayer.get(ws).id = JSON.stringify(msg.data); //replace with official code whenever
 }
 
 function handleSettingsMsg(ws, msg) {
@@ -168,7 +168,8 @@ function handleLobbyStateMsg(ws, msg) {
 function sendAllActivePlayerIDs() {
 	let s = getAllActivePlayerIDs();
 	wss.clients.forEach(function each(client) {
-		client.send("Your ID: " + (socketToPlayer.get(client)).id + " Everyone: " + s);
+		if (socketToPlayer.get(client) != null)
+			client.send("Your ID: " + (socketToPlayer.get(client)).id + " Everyone: " + s);
 
 	});
 }
@@ -176,7 +177,8 @@ function sendAllActivePlayerIDs() {
 function getAllActivePlayerIDs() {
 	let str = "";
 	wss.clients.forEach(function each(client) {
-		str += socketToPlayer.get(client).id + " ";
+		if (socketToPlayer.get(client) != null)
+			str += socketToPlayer.get(client).id + " ";
 	});
 	return str;
 }
