@@ -10,12 +10,18 @@
 
 // Selection of colors available. Always have more than the max number of players allowed in a lobby
 const availableColors = [
-   "#FF0000",
-   "#00FF00",
-   "#00FF00",
-   "#FFFF00",
-   "#00FFFF",
-   "#FF00FF",
+   "#9E0000",
+   "#E38A1E",
+   "#0E9931",
+   "#379E7A",
+   "#49A3C9",
+   "#2031C9",
+   "#6D07BA",
+   "#BF00B3",
+   "#DB86B6",
+   "#FF2E3C",
+   "#410142",
+   "#054543",
 ];
 
 /**
