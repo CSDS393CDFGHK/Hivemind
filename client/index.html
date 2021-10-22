@@ -1,136 +1,66 @@
-
-
 <!DOCTYPE html>
-
 <html>
-
 	<head>
-
 		<meta charset="utf-8">
-
 		<meta http-equiv="X-UA-Compatible" content="IE=edge">
-
 		<meta name="viewport" content="width=device-width, initial-scale=1">
-
 		<!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
-
 		<meta name="description" content="Hivemind game website">
-
 		<meta name="author" content="Aracelli Doescher, Brandon Kedson, Ethan Frank, Jerry Chen, Andrew Gross, Robbie Hammond">
-
 		<link href="css/styles.css" rel="stylesheet">
-
 		<title>Hivemind</title>
-
 	</head>
-
 	<body>
-
 		<div class="header">
-
 			<div class="container">
-
 				<h1>Hivemind</h1>
-
 				<p>A free and fun game for all</p>
-
 			</div>
-
 		</div>
-
 		<div class="landing" id="landing">
-
 			<div class="container" style="text-align: center;">
-
 				<h2>
-
 					Play
-
 				</h2>
-
 				<button class="button" id="CreateLobby">Create Lobby</button>
-
 			</div>
-
 			<div class="container">
-
 				<h3>
-
 					About
-
 				</h3>
-
 				<div>
-
 					A free and fun game for all
-
 				</div>
-
 				<h3>
-
 					How to Play
-
 				</h3>
-
 				<div>
-
 					Type a word and then wait your turn to type a word again.
-
 				</div>
-
 			</div>
-
 		</div>
-
 		<div class="lobby" id="lobby">
-
 			<div class="container" style="text-align: center; grid-auto-rows: 5em;">
-
 				<div class="container" style="grid-row: 1 / 5; display: block; grid-column: 1/4; transform: translate(0); left: 0;">
-
 					<div>
-
 						<h1>Settings</h1>
-
 						<p2>Number of Sentences: 15 </p2>
-
 					</div>
-
 				</div>
-
 				<div class="player" id="player0">
-
 					<div class="container" style="background-color: #FFFFFF;">
-
 						<div class="dot" style="background-color: green;"></div>
-
 						<div class="name">Steven</div>
-
-					</div>
-
 				</div>
-
 			</div>
-
 		</div>
-
 		<div class="container" id="ready" style="text-align: center; width: fit-content; display: block;">
-
-			
-
 			<label for="username">Username:</label>
-
 		<input type="text" id="username" autocomplete="off" name="username" required="" minlength="1" maxlength="20" size="10" placeholder="Enter username here">
-
 		<button class="button" id = "submitButton" style="margin-top: .5em">Submit Username
-
 		</button>
-
 		<button class="button" id = "readyButton" style="margin-top: .5em">Ready 1/4</button>
-
 		</div>
-
 	</body>
-
 	<script src="client.js"></script>
 </html>
