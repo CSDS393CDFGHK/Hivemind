@@ -26,12 +26,22 @@ function initialize() {
 	var player = document.getElementById('player0');
 	player.style.display = 'none';
 	var readyButton = document.getElementById('readyButton');
+	var submitButton = document.getElementById('submitButton');
 
 
 
 	//give buttons functionality
 	createLobby.onclick = onCreateLobbyClick;
-	ready.onclick = onReadyClick;
+	readyButton.onclick = onReadyClick;
+	submitButton.onclick = onSubmitClick;
+}
+
+function onSubmitClick() {
+	let attemptedUsername = '\"' + document.getElementById("username").value + '\"';
+	if (validUsername(attemptedUsername)) {
+		socket.send(`{"targetID":23, "sourceID":23, "type":"username", "lobbyID":23, "data": ${attemptedUsername}}`);
+	}
+
 }
 
 /**
@@ -94,6 +104,7 @@ function refreshPlayersInLobby(msg) {
 	removePlayerDivs(numPlayers);
 
 	addPlayerDivs(players, numPlayers);
+
 }
 
 function removePlayerDivs(numPlayers) {
@@ -189,4 +200,5 @@ function validUsername(word){
 	if(/^[\x00-\x7F]+$/.test(word)===false) return false;
 	else return true;
 }
+
 

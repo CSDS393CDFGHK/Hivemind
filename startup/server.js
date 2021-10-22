@@ -30,11 +30,6 @@ function accept(req, res) {
 
 function onSocketAction(ws) {
 	ws.on('message', function message(msg) {
-		/*
-		if (isStringMessage(msg)) {
-			handleStringMessage(msg, ws);
-		}
-		*/
 		let message = Message.fromJSON(msg);
 		switch (message.type) {
 			case MessageType.USERNAME:
@@ -116,6 +111,7 @@ startServer();
  */
 function handleUsernameMsg(ws, msg) {
 	console.log("server recieved a Username message");
+	socketToPlayer.get(ws).id = JSON.stringify(msg.data);
 }
 
 function handleSettingsMsg(ws, msg) {
@@ -143,7 +139,7 @@ function handleCreateLobbyMsg(ws, msg) {
 	//make new player, map socket to player, create a lobby specified by msg
 	//Just temp code, switch this to whatever actually needs to happen on backend
 	p = new Player(generateRandomString(8), "", "", false);
-	socketToPlayer.set(ws, p.id);
+	socketToPlayer.set(ws, p);
 	createLobby(msg.lobbyID, p);
 }
 
@@ -172,14 +168,15 @@ function handleLobbyStateMsg(ws, msg) {
 function sendAllActivePlayerIDs() {
 	let s = getAllActivePlayerIDs();
 	wss.clients.forEach(function each(client) {
-		client.send("Your ID: " + socketToPlayer.get(client) + " Everyone: " + s);
+		client.send("Your ID: " + (socketToPlayer.get(client)).id + " Everyone: " + s);
+
 	});
 }
 
 function getAllActivePlayerIDs() {
 	let str = "";
 	wss.clients.forEach(function each(client) {
-		str += socketToPlayer.get(client) + " ";
+		str += socketToPlayer.get(client).id + " ";
 	});
 	return str;
 }
@@ -205,31 +202,4 @@ function createLobby(lobbyID, owner) {
    // console.log(lobby.owner);
 }
 
-function handleStringMessage(msg, ws) {
-	if (msg== "Opening") {
-		count++;
-		wss.clients.forEach(function each(client) {
-			client.send(count);
-		});
-	}
-	//handles closing when not leaving page.
-	else if (msg == "Closing") {
-		count--;
-		wss.clients.forEach(function each(client) {
-			client.send(count);
-		});
-	}
-	else if (msg == "Create Lobby") {
-		console.log("here");
-		lobbies.push("this is a lobby");
-		ws.send("L_CREATED: The server has recognized that you created a lobby. " + lobbies.length + " lobbies have been created since last server restart.");
-	}
-}
-
-function isStringMessage(msg) {
-	return msg == "Opening" || msg == "Closing" || msg == "Create Lobby";
-}
-
 /*---------------------------------*/
-
-
