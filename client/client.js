@@ -3,32 +3,46 @@
  * @fileoverview Client.js handles client-side sockets and events.
  */
 
+//constants used in all functions; the location of the server and the socket used to communicate
 const SERVER_WS_LOCATION = 'ws://3.144.98.109/Hivemind/startup/'; //not permanent, but where it's located now
-let socket = new WebSocket(SERVER_WS_LOCATION);
-socket.onopen = function(e) {
-	onOpen(socket);
+const socket = new WebSocket(SERVER_WS_LOCATION);
+initialize();
+
+/**
+ * First function called when client.js is recieved by client.
+ */
+function initialize() {
+	//configure socket stuff
+	socket.onopen = onOpen;
+	socket.onmessage = websocketCallback;
+	socket.onclose = onClose;
+
+	//hide Lobby stuff initially
+	var lobby = document.getElementById('lobby');
+	lobby.style.display = 'none';
+	var ready = document.getElementById('ready');
+	ready.style.display = 'none';
+	var createLobby = document.getElementById('CreateLobby'); 
+	var player = document.getElementById('player0');
+	player.style.display = 'none';
+	var readyButton = document.getElementById('readyButton');
+	var submitButton = document.getElementById('submitButton');
+
+
+
+	//give buttons functionality
+	createLobby.onclick = onCreateLobbyClick;
+	readyButton.onclick = onReadyClick;
+	submitButton.onclick = onSubmitClick;
 }
-socket.onmessage = function(event) {
-	onMessage(event);
+
+function onSubmitClick() {
+	let attemptedUsername = '\"' + document.getElementById("username").value + '\"';
+	if (validUsername(attemptedUsername)) {
+		socket.send(`{"targetID":23, "sourceID":23, "type":"username", "lobbyID":23, "data": ${attemptedUsername}}`);
+	}
+
 }
-socket.onclose = function(event) {
-	onClose(socket);
-}
-
-//hide Lobby stuff initially
-var lobby = document.getElementById('lobby');
-lobby.style.display = 'none';
-var ready = document.getElementById('ready');
-ready.style.display = 'none';
-var button = document.getElementById('CreateLobby'); 
-
-
-//when button is clicked, hide landing page and display lobby and ready button.
-//Send msg to server indicating that we want a lobby created.
-button.onclick = onCreateLobbyClick;
-
-ready.onclick = onReadyClick;
-
 
 /**
  * Called when you click the "Create Lobby" button the main page
@@ -37,8 +51,8 @@ function onCreateLobbyClick() {
 	socket.send('{"targetID":23, "sourceID":23, "type":"create_lobby", "lobbyID":23, "data": {"hello":3}}');
     var landing = document.getElementById('landing');
     landing.style.display = 'none';
-    ready.style.display = 'block';
     lobby.style.display = 'block';
+	ready.style.display = 'block';
 }
 
 /**
@@ -53,8 +67,8 @@ function onReadyClick() {
  * Called when websocket makes connection
  * @param {Socket} socket The socket that is being opened
  */
-function onOpen(socket){	
-	//might not need anything here
+function onOpen(socket) {	
+	//
 }
 
 /**
@@ -66,23 +80,72 @@ function onClose(socket){
 }
 
 /**
- * Called when the websocket sends/receives a JSON message
- * @param {Message} msg The incoming msg
- */
-function onMessage(Message){
-	console.log(Message.data);
-	//if the first word of the response is "L_CREATED"
-	if (Message.data.split(" ")[0] == "L_CREATED:") {
-		alert(Message.data);
-	}
-}
-
-/**
  * Incoming event handler. Passes events to other handlers based on msg.type
  * @param {Message} msg The incoming msg
  */
  function websocketCallback(msg) {
+	 //if msg is player leave/player join, need to refresh. Only operation currently supported.
+	refreshPlayersInLobby(msg);
+}
 
+/**
+ * Update the players in lobby based on the number of active connections.
+ * Update by removing all, and then adding all back
+ * @param {Message} msg The incoming msg
+ */
+function refreshPlayersInLobby(msg) {
+	const ar = msg.data.split(" ");
+
+	//Cut off the "Your ID: Everyone" portion, get only the players.
+	const players = ar.slice(4, -1);
+	const myID = ar[2];
+	const numPlayers = players.length;
+
+	removePlayerDivs(numPlayers);
+
+	addPlayerDivs(players, numPlayers);
+
+}
+
+function removePlayerDivs(numPlayers) {
+	//set OG player to invisible, delete rest of them
+	document.getElementById('player0').style.display = 'none';
+	for (let i = 1; i <= numPlayers; i++) {
+		if (document.getElementById('player' + i) !== null)
+			document.getElementById('player' + i).remove();
+	}
+}
+
+function addPlayerDivs(players, numPlayers) {
+	//(i - 1) = id of last player div displayed (i.e. when i == 0, no player divs have been displayed)
+	for (let i = 0; i < numPlayers; i++) {
+		if (i == 0) {
+			//expose the player0 div, edit the player name 
+			document.getElementById('player0').style.display = 'block';
+			document.getElementById('player0').style.gridColumnStart = "5";
+			document.getElementsByClassName('name')[0].textContent = players[i] //get the correct div, name field within div
+		}
+		else {
+			//create div for new player 
+			createPlayerDiv(players[i], i);
+		}
+	}
+}
+
+function createPlayerDiv(player, playerid) {
+	//get the last made player div
+	var original = document.getElementById('player' + 0);
+
+	//copy the div, change its ID, append it 
+	var clone = original.cloneNode(true);
+	clone.id = "player" + (playerid); // there can only be one element with an ID
+	original.parentNode.appendChild(clone);
+
+	//get the 'name' field, change it to be this players id
+	document.getElementById(clone.id).getElementsByClassName('name')[0].textContent = player;
+	if ((playerid) % 3 != 0) {
+		document.getElementById(clone.id).style.gridColumnStart = "auto";
+	}
 }
 
 /**
@@ -130,9 +193,11 @@ function onChangeSettings(){
 /**
  * Checks to see if a username is valid 
  * @param {String} word The string that the user has input
- * @param {Player} p The player that input the word
  * @return {Boolean} Returns whether the username was valid
  * */ 
-function validUsername(word, p){
-
+function validUsername(word){
+	word = word.trim();
+	if(/^[\x00-\x7F]+$/.test(word)===false) return false;
+	else return true;
 }
+

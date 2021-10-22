@@ -11,14 +11,13 @@
 		<title>Hivemind</title>
 	</head>
 	<body>
-		<div class="landing" id="landing">
-			<div class="header">
-				<div class="container">
-					<h1>Hivemind</h1>
-					<p>A free and fun game for all</p>
-				</div>
+		<div class="header">
+			<div class="container">
+				<h1>Hivemind</h1>
+				<p>A free and fun game for all</p>
 			</div>
-			
+		</div>
+		<div class="landing" id="landing">
 			<div class="container" style="text-align: center;">
 				<h2>
 					Play
@@ -48,34 +47,19 @@
 						<p2>Number of Sentences: 15 </p2>
 					</div>
 				</div>
-				<div class="player" style="grid-column: 5">
-					<div class="container">
-						<div class="dot"></div>
-						<div>Travis (you)</div>
-					</div>
-				</div>
-				<div class="player">
-					<div class="container" style="background-color: #B7FFBF;">
+				<div class="player" id="player0">
+					<div class="container" style="background-color: #FFFFFF;">
 						<div class="dot" style="background-color: green;"></div>
-						<div>Steven</div>
-					</div>
-				</div>
-				<div class="player">
-					<div class="container">
-						<div class="dot" style="background-color: red;"></div>
-						<div>Alice</div>
-					</div>
-				</div>
-				<div class="player" style="grid-column: 5">
-					<div class="container">
-						<div class="dot" style="background-color: pink"></div>
-						<div>Stacy</div>
-					</div>
+						<div class="name">Steven</div>
 				</div>
 			</div>
 		</div>
-		<div class="container" id="ready" style="text-align:center; width: fit-content">
-			<button class="button" style="margin-top: .5em">Ready 1/4</button>
+		<div class="container" id="ready" style="text-align: center; width: fit-content; display: block;">
+			<label for="username">Username:</label>
+		<input type="text" id="username" autocomplete="off" name="username" required="" minlength="1" maxlength="20" size="10" placeholder="Enter username here">
+		<button class="button" id = "submitButton" style="margin-top: .5em">Submit Username
+		</button>
+		<button class="button" id = "readyButton" style="margin-top: .5em">Ready 1/4</button>
 		</div>
 	</body>
 	<script src="client.js"></script>
