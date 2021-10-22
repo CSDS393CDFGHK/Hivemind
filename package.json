@@ -4,7 +4,7 @@
   "description": "",
   "main": "server.js",
   "scripts": {
-    "test": "mocha",
+    "test": "nyc mocha",
     "start": "node server.js"
   },
   "repository": {
@@ -19,6 +19,7 @@
   "homepage": "https://github.com/CSDS393CDFGHK/Hivemind#readme",
   "dependencies": {
     "mocha": "^9.1.2",
+    "nyc": "^15.1.0",
     "ws": "^8.2.3"
   }
 }
