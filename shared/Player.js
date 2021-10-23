@@ -22,10 +22,10 @@
  * @constructor
  * @param {int} id Unique, secret identifier of this player
  */
-function Player(id) {
+function Player(id, color) {
    this.id = id;
    this.username = Utils.generateRandomString();
-   this.color = "000000";
+   this.color = color;
    this.ready = false;
 }
 

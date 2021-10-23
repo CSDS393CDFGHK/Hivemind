@@ -7,6 +7,8 @@ const LobbyState = require("../shared/LobbyState.js");
 const Player = require("../shared/Player.js");
 const Message = require("../shared/Message.js");
 const MessageType = require("../shared/MessageType.js");
+const UniqueColorPicker = require("../server/UniqueColorPicker.js");
+const MAX_PLAYERS = 12;
 
 /**
  * @constructor
@@ -14,9 +16,10 @@ const MessageType = require("../shared/MessageType.js");
  * @param {String} owner The owner of the lobby
  */
  function Lobby(lobbyID, owner) {
+    this.picker = new UniqueColorPicker();
     this.lobbyID = lobbyID; // The lobby's unique id
     this.players = []; // The collection of Players in this lobby
-    this.players.push(new Player(owner));
+    this.players.push(new Player(owner, this.picker.pickColor()));
     this.sockets = {}; // A dictionary of websockets, indexed by player's id
     this.settings = new Settings(20, 8); // Game settings, initialized to defaults
     this.state = LobbyState.LOBBY; // All games start in the lobby
@@ -33,28 +36,26 @@ Lobby.prototype.handleMessage = function(msg) {
         case MessageType.USERNAME:
             this.handleUsernameChange(msg);
             break;
-        case MessageType.CREATE_LOBBY:            //Huh?
-            console.log("Nice try");
-            break;
         case MessageType.SETTINGS:
-            handleSettingsChange(msg);
+            this.handleSettingsChange(msg);
             break;
         case MessageType.READY:
-            handleReadyChange(msg);
+            this.handleReadyChange(msg);
             break;
         case MessageType.PLAYER_JOIN:
-            handlePlayerJoin(msg);
+            this.handlePlayerJoin(msg);
             break;
         case MessageType.PLAYER_LEAVE:
-            handlePlayerLeave(msg);
+            this.handlePlayerLeave(msg);
             break;
         case MessageType.WORD:
-            handleWord(msg);
+            this.handleWord(msg);
             break;
         case MessageType.LOBBY_ID:
         case MessageType.PLAYER_DATA:
         case MessageType.NEXT_TURN:
         case MessageType.LOBBY_STATE:
+        case MessageType.CREATE_LOBBY:
             console.log('Recieved Bad Message Type: ' + msg.type);
             break;
         default:
@@ -79,7 +80,7 @@ Lobby.prototype.handleSettingsChange = function(msg) {
  */
 Lobby.prototype.handleUsernameChange = function(msg) {
     this.players[msg.sourceID].username = msg.data["username"];
-    console.log(this.players[msg.sourceID].username);
+    console.log(this.players);
 }
 
 /**
@@ -88,7 +89,12 @@ Lobby.prototype.handleUsernameChange = function(msg) {
  * @return {Message[]} List of messages to send back to clients
  */
 Lobby.prototype.handlePlayerJoin = function(msg) {
-
+    // Note: Add checks for joining midgame, exceeding player limit, etc.
+    if (this.players.length < MAX_PLAYERS) {
+        this.players.push(new Player(msg.sourceID, this.picker.pickColor()));
+    } else {
+        console.log("There are too many players in the lobby."); // Fix
+    }
 }
 
 /**
@@ -97,7 +103,7 @@ Lobby.prototype.handlePlayerJoin = function(msg) {
  * @return {Message[]} List of messages to send back to clients
  */
 Lobby.prototype.handlePlayerLeave = function(msg) {
-
+    
 }
 
 /**

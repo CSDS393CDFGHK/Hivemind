@@ -33,6 +33,7 @@ function onSocketAction(ws) {
 	ws.on('message', function message(msg) {
         console.log("Received: " + msg);
 		let message = Message.fromJSON(msg);
+        // Create the lobby or find the lobby and send the message on
         if (message.type == MessageType.CREATE_LOBBY) {
             let lobbyID = Utils.generateRandomString();
             lobbies.push(new Lobby("1", message.sourceID));

@@ -23,6 +23,12 @@
           // Send a username
           m = new Message(-1, 0, MessageType.USERNAME, "1", {"username":"CoolGuy32"});
           ws.send(m.toJSON());
+
+          // Add a player and change their username
+          m = new Message(-1, 1, MessageType.PLAYER_JOIN, "1");
+          ws.send(m.toJSON());
+          m = new Message(-1, 1, MessageType.USERNAME, "1", {"username":"TestSubjectBlue"});
+          ws.send(m.toJSON());          
         };
 
         ws.onmessage = function (evt) {
