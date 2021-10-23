@@ -4,6 +4,9 @@
 
 const Settings = require("../shared/Settings.js");
 const LobbyState = require("../shared/LobbyState.js");
+const Player = require("../shared/Player.js");
+const Message = require("../shared/Message.js");
+const MessageType = require("../shared/MessageType.js");
 
 /**
  * @constructor
@@ -12,7 +15,8 @@ const LobbyState = require("../shared/LobbyState.js");
  */
  function Lobby(lobbyID, owner) {
     this.lobbyID = lobbyID; // The lobby's unique id
-    this.players = new Set(); // The collection of Players in this lobby
+    this.players = []; // The collection of Players in this lobby
+    this.players.push(new Player(owner));
     this.sockets = {}; // A dictionary of websockets, indexed by player's id
     this.settings = new Settings(20, 8); // Game settings, initialized to defaults
     this.state = LobbyState.LOBBY; // All games start in the lobby
@@ -24,8 +28,39 @@ const LobbyState = require("../shared/LobbyState.js");
  * @param {Message} msg The incoming msg
  * @return {Message[]} List of messages to send back to clients
  */
-Lobby.prototype.websocketCallback = function(msg) {
-
+Lobby.prototype.handleMessage = function(msg) {
+    switch (msg.type) {
+        case MessageType.USERNAME:
+            this.handleUsernameChange(msg);
+            break;
+        case MessageType.CREATE_LOBBY:            //Huh?
+            console.log("Nice try");
+            break;
+        case MessageType.SETTINGS:
+            handleSettingsChange(msg);
+            break;
+        case MessageType.READY:
+            handleReadyChange(msg);
+            break;
+        case MessageType.PLAYER_JOIN:
+            handlePlayerJoin(msg);
+            break;
+        case MessageType.PLAYER_LEAVE:
+            handlePlayerLeave(msg);
+            break;
+        case MessageType.WORD:
+            handleWord(msg);
+            break;
+        case MessageType.LOBBY_ID:
+        case MessageType.PLAYER_DATA:
+        case MessageType.NEXT_TURN:
+        case MessageType.LOBBY_STATE:
+            console.log('Recieved Bad Message Type: ' + msg.type);
+            break;
+        default:
+            console.log('Recieved Unknown Message Type: ' + msg.type);
+            break;
+    }
 }
 
 /**
@@ -43,7 +78,8 @@ Lobby.prototype.handleSettingsChange = function(msg) {
  * @return {Message[]} List of messages to send back to clients
  */
 Lobby.prototype.handleUsernameChange = function(msg) {
-
+    this.players[msg.sourceID].username = msg.data["username"];
+    console.log(this.players[msg.sourceID].username);
 }
 
 /**
@@ -105,6 +141,10 @@ Lobby.prototype.getPlayer = function(id) {
  */
 Lobby.prototype.getSocket = function(id) {
 
+}
+
+Lobby.prototype.getID = function() {
+    return this.lobbyID;
 }
 
 module.exports = Lobby;

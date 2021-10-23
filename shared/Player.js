@@ -2,20 +2,31 @@
  * @fileoverview The Player class stores data associated with a Player.
  */
 
+ const Utils = require("../shared/Utils.js");
+
 /**
  * @constructor
  * @param {int} id Unique, secret identifier of this player
  * @param {String} username Display name of this player
  * @param {int} color Stores player's color as in integer representation of hex code
  * @param {Boolean} ready Is this player ready to start the game
- * @param {isOwner} isOwner Is this player the owner of the lobby
  */
- function Player(id, username, color, ready, isOwner) {
+ function Player(id, username, color, ready) {
     this.id = id;
     this.username = username;
     this.color = color;
     this.ready = ready;
-    this.isOwner = isOwner;
+}
+
+/**
+ * @constructor
+ * @param {int} id Unique, secret identifier of this player
+ */
+function Player(id) {
+   this.id = id;
+   this.username = Utils.generateRandomString();
+   this.color = "000000";
+   this.ready = false;
 }
 
 /**
@@ -28,7 +39,6 @@ Player.prototype.toJSON = function() {
         username: this.username,
         color: this.color,
         ready: this.ready,
-        isOwner: this.isOwner,
     }
     return JSON.stringify(properties);
 }
@@ -41,7 +51,7 @@ Player.prototype.toJSON = function() {
 Player.fromJSON = function(json) {
     // Need to transfer bare data to an actual object
     data = JSON.parse(json);
-    return new Player(data.id, data.username, data.color, data.ready, data.isOwner);
+    return new Player(data.id, data.username, data.color, data.ready);
 }
 
 if (typeof module === 'object') {
