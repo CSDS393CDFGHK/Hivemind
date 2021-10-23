@@ -37,4 +37,8 @@ Settings.fromJSON = function(json) {
     return new Settings(data.turnTimeLimit, data.gameLength);
 }
 
-module.exports = Settings;
+if (typeof module === 'object') {
+    module.exports = Settings;
+} else {
+    window.Settings = Settings;
+}

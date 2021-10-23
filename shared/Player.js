@@ -44,4 +44,8 @@ Player.fromJSON = function(json) {
     return new Player(data.id, data.username, data.color, data.ready, data.isOwner);
 }
 
-module.exports = Player;
+if (typeof module === 'object') {
+    module.exports = Player;
+} else {
+    window.Player = Player;
+}

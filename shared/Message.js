@@ -47,4 +47,8 @@ Message.fromJSON = function(json) {
     return new Message(data.targetID, data.sourceID, data.type, data.lobbyID, data.data);
 }
 
-module.exports = Message;
+if (typeof module === 'object') {
+    module.exports = Message;
+} else {
+    window.Message = Message;
+}
