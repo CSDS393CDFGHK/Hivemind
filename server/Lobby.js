@@ -8,6 +8,7 @@ const Player = require("../shared/Player.js");
 const Message = require("../shared/Message.js");
 const MessageType = require("../shared/MessageType.js");
 const UniqueColorPicker = require("../server/UniqueColorPicker.js");
+const Utils = require("../shared/Utils.js");
 const MAX_PLAYERS = 12;
 
 /**
@@ -19,7 +20,7 @@ const MAX_PLAYERS = 12;
     this.picker = new UniqueColorPicker();
     this.lobbyID = lobbyID; // The lobby's unique id
     this.players = []; // The collection of Players in this lobby
-    this.players.push(new Player(owner, this.picker.pickColor()));
+    this.players.push(new Player(owner, Utils.generateRandomString(8), this.picker.pickColor()));
     this.sockets = {}; // A dictionary of websockets, indexed by player's id
     this.settings = new Settings(20, 8); // Game settings, initialized to defaults
     this.state = LobbyState.LOBBY; // All games start in the lobby
@@ -86,7 +87,7 @@ Lobby.prototype.handleUsernameChange = function(msg) {
 Lobby.prototype.handlePlayerJoin = function(msg) {
     // Note: Add checks for joining midgame, exceeding player limit, etc.
     if (this.players.length < MAX_PLAYERS) {
-        this.players.push(new Player(msg.sourceID, this.picker.pickColor()));
+        this.players.push(new Player(msg.sourceID, Utils.generateRandomString(8), this.picker.pickColor()));
     } else {
         console.log("There are too many players in the lobby."); // Fix
     }

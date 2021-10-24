@@ -2,8 +2,6 @@
  * @fileoverview The Player class stores data associated with a Player.
  */
 
- const Utils = require("./Utils.js");
-
 /**
  * @constructor
  * @param {String} id Unique, secret identifier of this player
@@ -23,9 +21,9 @@
  * @param {String} id Unique, secret identifier of this player
  * @param {String} color Stores player's color as in integer representation of hex code
  */
-function Player(id, color) {
+function Player(id, username, color) {
    this.id = id;
-   this.username = Utils.generateRandomString(8);
+   this.username = username;
    this.color = color;
    this.ready = false;
 }

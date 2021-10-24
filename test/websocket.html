@@ -28,10 +28,10 @@
           let msg = Message.fromJSON(message);
           
           if (msg.type == MessageType.USERNAME) {
-            console.log("New player creation with message: " + msg);
-            console.log("New player data: " + msg.data);
-            let p = new Player(msg.data);
-            console.log("New player: " + p);
+            console.log("New player creation with message: " + msg.type);
+            let data = JSON.parse(msg.data);
+            let p = new Player(data["id"], data["username"], data["color"], data["ready"]);
+            console.log("New player: " + p.id);
           }
 
           if (msg.type == MessageType.LOBBY_ID) {

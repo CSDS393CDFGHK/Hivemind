@@ -42,7 +42,7 @@ function onSocketAction(ws) {
 
 function onMessage(msg, ws) {
 	// console.log("Received: " + msg);
-	console.log(sockets);
+	// console.log(sockets);
 	let message = Message.fromJSON(msg);
 	// Create the lobby or find the lobby and send the message on
 	if (message.type == MessageType.CREATE_LOBBY) {
