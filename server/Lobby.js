@@ -34,23 +34,17 @@ const MAX_PLAYERS = 12;
 Lobby.prototype.handleMessage = function(msg) {
     switch (msg.type) {
         case MessageType.USERNAME:
-            this.handleUsernameChange(msg);
-            break;
+            return this.handleUsernameChange(msg);
         case MessageType.SETTINGS:
-            this.handleSettingsChange(msg);
-            break;
+            return this.handleSettingsChange(msg);
         case MessageType.READY:
-            this.handleReadyChange(msg);
-            break;
+            return this.handleReadyChange(msg);
         case MessageType.PLAYER_JOIN:
-            this.handlePlayerJoin(msg);
-            break;
+            return this.handlePlayerJoin(msg);
         case MessageType.PLAYER_LEAVE:
-            this.handlePlayerLeave(msg);
-            break;
+            return this.handlePlayerLeave(msg);
         case MessageType.WORD:
-            this.handleWord(msg);
-            break;
+            return this.handleWord(msg);
         case MessageType.LOBBY_ID:
         case MessageType.PLAYER_DATA:
         case MessageType.NEXT_TURN:
@@ -80,6 +74,8 @@ Lobby.prototype.handleSettingsChange = function(msg) {
  */
 Lobby.prototype.handleUsernameChange = function(msg) {
     this.getPlayer(msg.sourceID).username = msg.data["username"];
+
+    return [new Message("all", "",  MessageType.USERNAME, this.lobbyID, this.getPlayer(msg.sourceID))];
 }
 
 /**
@@ -94,6 +90,7 @@ Lobby.prototype.handlePlayerJoin = function(msg) {
     } else {
         console.log("There are too many players in the lobby."); // Fix
     }
+    return [];
 }
 
 /**

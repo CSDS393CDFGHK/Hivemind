@@ -7,6 +7,7 @@
 <body> 
     <script src="../shared/Message.js"></script>
     <script src="../shared/MessageType.js"></script>
+    <script src="../shared/Player.js"></script>
     <script type="text/javascript">
         console.log("Hello World");
 
@@ -23,20 +24,27 @@
 
         ws.onmessage = function (evt) {
           var message = evt.data;
-          // console.log("Received: " + message);
+          console.log("Received: " + message);
           let msg = Message.fromJSON(message);
           
-          let lobbyID = msg.lobbyID;
+          if (msg.type == MessageType.USERNAME) {
+            console.log("New player creation with message: " + msg);
+            console.log("New player data: " + msg.data);
+            let p = new Player(msg.data);
+            console.log("New player: " + p);
+          }
 
-          // Send a username
-          m = new Message(-1, "ownerid", MessageType.USERNAME, lobbyID, {"username":"CoolGuy32"});
-          ws.send(m.toJSON());    
-        
-          // Add a player and change their username
-          m = new Message(-1, "newid", MessageType.PLAYER_JOIN, lobbyID);
-          ws.send(m.toJSON());
-          m = new Message(-1, "newid", MessageType.USERNAME, lobbyID, {"username":"TestSubjectBlue"});
-          ws.send(m.toJSON());   
+          if (msg.type == MessageType.LOBBY_ID) {
+            let lobbyID = msg.lobbyID;
+            // Send a username
+            m = new Message(-1, "ownerid", MessageType.USERNAME, lobbyID, {"username":"CoolGuy32"});
+            ws.send(m.toJSON());    
+            // Add a player and change their username
+            m = new Message(-1, "newid", MessageType.PLAYER_JOIN, lobbyID);
+            ws.send(m.toJSON());
+            m = new Message(-1, "newid", MessageType.USERNAME, lobbyID, {"username":"TestSubjectBlue"});
+            ws.send(m.toJSON());   
+          }
         };
 
         ws.onclose = function() {

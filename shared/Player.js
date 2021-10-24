@@ -2,7 +2,7 @@
  * @fileoverview The Player class stores data associated with a Player.
  */
 
- const Utils = require("../shared/Utils.js");
+ const Utils = require("./Utils.js");
 
 /**
  * @constructor

@@ -62,7 +62,11 @@ function onMessage(msg, ws) {
 		console.log("Lobby " + message.lobbyID + " does not exist.");
 		return;
 	}
-	lobby.handleMessage(message);
+	let toClientMessages = lobby.handleMessage(message);
+
+	for (i = 0; i < toClientMessages.length; i++) {
+		sendMessage(toClientMessages[i]);
+	}
 
 	// Handles websockets and lobby deletion
 	if (message.type == MessageType.PLAYER_JOIN) {
