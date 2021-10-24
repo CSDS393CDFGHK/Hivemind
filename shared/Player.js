@@ -6,9 +6,9 @@
 
 /**
  * @constructor
- * @param {int} id Unique, secret identifier of this player
+ * @param {String} id Unique, secret identifier of this player
  * @param {String} username Display name of this player
- * @param {int} color Stores player's color as in integer representation of hex code
+ * @param {String} color Stores player's color as in integer representation of hex code
  * @param {Boolean} ready Is this player ready to start the game
  */
  function Player(id, username, color, ready) {
@@ -20,11 +20,12 @@
 
 /**
  * @constructor
- * @param {int} id Unique, secret identifier of this player
+ * @param {String} id Unique, secret identifier of this player
+ * @param {String} color Stores player's color as in integer representation of hex code
  */
 function Player(id, color) {
    this.id = id;
-   this.username = Utils.generateRandomString();
+   this.username = Utils.generateRandomString(8);
    this.color = color;
    this.ready = false;
 }

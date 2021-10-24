@@ -79,8 +79,7 @@ Lobby.prototype.handleSettingsChange = function(msg) {
  * @return {Message[]} List of messages to send back to clients
  */
 Lobby.prototype.handleUsernameChange = function(msg) {
-    this.players[msg.sourceID].username = msg.data["username"];
-    console.log(this.players);
+    this.getPlayer(msg.sourceID).username = msg.data["username"];
 }
 
 /**
@@ -137,7 +136,12 @@ Lobby.prototype.triggerGameStart = function() {
  * @return {Player}
  */
 Lobby.prototype.getPlayer = function(id) {
-
+	for (i = 0; i < this.players.length; i++) {
+		if (this.players[i].id == id) {
+			return this.players[i];
+		}
+	}
+	return null;
 }
 
 /**
@@ -149,6 +153,7 @@ Lobby.prototype.getSocket = function(id) {
 
 }
 
+// Gets the id
 Lobby.prototype.getID = function() {
     return this.lobbyID;
 }

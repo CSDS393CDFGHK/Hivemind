@@ -17,29 +17,32 @@
           // Web Socket is connected, send data using send()
 
           // Create lobby
-          let m = new Message(-1, 0, MessageType.CREATE_LOBBY, "1");
-          ws.send(m.toJSON());
-
-          // Send a username
-          m = new Message(-1, 0, MessageType.USERNAME, "1", {"username":"CoolGuy32"});
-          ws.send(m.toJSON());
-
-          // Add a player and change their username
-          m = new Message(-1, 1, MessageType.PLAYER_JOIN, "1");
-          ws.send(m.toJSON());
-          m = new Message(-1, 1, MessageType.USERNAME, "1", {"username":"TestSubjectBlue"});
-          ws.send(m.toJSON());          
+          let m = new Message(-1, "ownerid", MessageType.CREATE_LOBBY, "1");
+          ws.send(m.toJSON());   
         };
 
         ws.onmessage = function (evt) {
-          var msg = evt.data;
-          console.log("Received: " + msg);
+          var message = evt.data;
+          // console.log("Received: " + message);
+          let msg = Message.fromJSON(message);
+          
+          let lobbyID = msg.lobbyID;
+
+          // Send a username
+          m = new Message(-1, "ownerid", MessageType.USERNAME, lobbyID, {"username":"CoolGuy32"});
+          ws.send(m.toJSON());    
+        
+          // Add a player and change their username
+          m = new Message(-1, "newid", MessageType.PLAYER_JOIN, lobbyID);
+          ws.send(m.toJSON());
+          m = new Message(-1, "newid", MessageType.USERNAME, lobbyID, {"username":"TestSubjectBlue"});
+          ws.send(m.toJSON());   
         };
 
         ws.onclose = function() {
 
           // websocket is closed.
-          alert("Connection is closed...");
+          console.log("Connection is closed");
         };
     </script>
 </body>

@@ -13,7 +13,7 @@ Utils.generateRandomCharacter = function() {
 Utils.generateRandomString = function(length) {
     let result = "";
     for (let i = 0; i < length; i++) {
-        result += generateRandomCharacter();
+        result += this.generateRandomCharacter();
     }
     return result;
 }
