@@ -40,38 +40,38 @@ function onSocketAction(ws) {
 	});
 }
 
-function onMessage(msg, ws) {
-	// console.log("Received: " + msg);
+function onMessage(message, ws) {
+	// console.log("Received: " + message);
 	// console.log(sockets);
-	let message = Message.fromJSON(msg);
+	let msg = Message.fromJSON(message);
 	// Create the lobby or find the lobby and send the message on
-	if (message.type == MessageType.CREATE_LOBBY) {
+	if (msg.type == MessageType.CREATE_LOBBY) {
 		let lobbyID = Utils.generateRandomString(8);
-		lobbies.push(new Lobby(lobbyID, message.sourceID));
+		lobbies.push(new Lobby(lobbyID, msg.sourceID));
 		sockets[lobbyID] = {};
-		sockets[lobbyID][message.sourceID] = ws;
+		sockets[lobbyID][msg.sourceID] = ws;
 
 		// Tell client the new lobby id
-		sendMessage(new Message(message.sourceID, "", MessageType.LOBBY_ID, lobbyID, {}));
+		sendMessage(new Message(msg.sourceID, "", MessageType.LOBBY_ID, lobbyID, {}));
 		return;
 	}
 
 	// Sends the message on to the lobby
-	let lobby = getLobby(message.lobbyID);
+	let lobby = getLobby(msg.lobbyID);
 	if (lobby == null) {
-		console.log("Lobby " + message.lobbyID + " does not exist.");
+		console.log("Lobby " + msg.lobbyID + " does not exist.");
 		return;
 	}
-	let toClientMessages = lobby.handleMessage(message);
+	let toClientMessages = lobby.handleMessage(msg);
 
 	for (i = 0; i < toClientMessages.length; i++) {
 		sendMessage(toClientMessages[i]);
 	}
 
 	// Handles websockets and lobby deletion
-	if (message.type == MessageType.PLAYER_JOIN) {
-		sockets[message.lobbyID][message.sourceID] = ws;
-	} else if (message.type == MessageType.PLAYER_LEAVE) {
+	if (msg.type == MessageType.PLAYER_JOIN) {
+		sockets[msg.lobbyID][msg.sourceID] = ws;
+	} else if (msg.type == MessageType.PLAYER_LEAVE) {
 		// Delete lobby if there are no players
 		if (lobby.players.length <= 0) {
 
