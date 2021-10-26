@@ -14,17 +14,17 @@ const MAX_PLAYERS = 12;
 /**
  * @constructor
  * @param {String} lobbyID The lobby's unique id
- * @param {String} owner The owner of the lobby
+ * @param {String} ownerID The owner of the lobby
  */
- function Lobby(lobbyID, owner) {
+ function Lobby(lobbyID, ownerID) {
     this.picker = new UniqueColorPicker();
     this.lobbyID = lobbyID; // The lobby's unique id
     this.players = []; // The collection of Players in this lobby
-    this.players.push(new Player(owner, Utils.generateRandomString(8), this.picker.pickColor()));
+    this.players.push(new Player(ownerID, Utils.generateRandomString(8), this.picker.pickColor()));
     this.sockets = {}; // A dictionary of websockets, indexed by player's id
     this.settings = new Settings(20, 8); // Game settings, initialized to defaults
     this.state = LobbyState.LOBBY; // All games start in the lobby
-    this.owner = owner; // The owner of the lobby
+    this.ownerID = ownerID; // The ownerID of the lobby
 }
 
 /**
@@ -60,7 +60,7 @@ Lobby.prototype.handleMessage = function(msg) {
 }
 
 /**
- * Recieves messages when the lobby owner changes the lobby settings
+ * Recieves messages when the lobby ownerID changes the lobby settings
  * @param {Message} msg The incoming msg
  * @return {Message[]} List of messages to send back to clients
  */
@@ -74,9 +74,10 @@ Lobby.prototype.handleSettingsChange = function(msg) {
  * @return {Message[]} List of messages to send back to clients
  */
 Lobby.prototype.handleUsernameChange = function(msg) {
-    this.getPlayer(msg.sourceID).username = msg.data["username"];
-
-    return [new Message("all", "",  MessageType.USERNAME, this.lobbyID, this.getPlayer(msg.sourceID))];
+    let player = this.getPlayer(msg.sourceID);
+    player.username = msg.data["username"];
+    let usernameMsg = new Message("all", "",  MessageType.USERNAME, this.lobbyID, {"id":msg.sourceID, "username":player.username});
+    return [usernameMsg];
 }
 
 /**
@@ -85,13 +86,23 @@ Lobby.prototype.handleUsernameChange = function(msg) {
  * @return {Message[]} List of messages to send back to clients
  */
 Lobby.prototype.handlePlayerJoin = function(msg) {
-    // Note: Add checks for joining midgame, exceeding player limit, etc.
     if (this.players.length < MAX_PLAYERS) {
-        this.players.push(new Player(msg.sourceID, Utils.generateRandomString(8), this.picker.pickColor()));
+        let player = new Player(msg.sourceID, Utils.generateRandomString(8), this.picker.pickColor());
+        this.players.push(player);
+
+        // Informs the other players in the lobby that a new player has joined
+        let playerJoinMsg = new Message("all", "",  MessageType.PLAYER_JOIN, this.lobbyID, player.toDict());
+
+        // Sends player, lobby state, and settings data to the new player
+        let informNewPlayerMsg = new Message(msg.sourceID, "", MessageType.PLAYER_DATA, this.lobbyID, this.toPlayerDataDict());
+        let lobbyStateMsg = new Message(msg.sourceID, "", MessageType.LOBBY_STATE, this.lobbyID, this.state);
+        let settingsMsg = new Message(msg.sourceID, "", MessageType.SETTINGS, this.lobbyID, null/*Settings*/);
+
+        return [playerJoinMsg, informNewPlayerMsg, lobbyStateMsg, settingsMsg];
     } else {
         console.log("There are too many players in the lobby."); // Fix
+        return [];
     }
-    return [];
 }
 
 /**
@@ -149,6 +160,22 @@ Lobby.prototype.getPlayer = function(id) {
  */
 Lobby.prototype.getSocket = function(id) {
 
+}
+
+/**
+ * Converts this object to a dictionary.
+ * @return {String}
+ */
+ Lobby.prototype.toPlayerDataDict = function() {
+     let arr = []
+    for (i = 0; i < this.players.length; i++) {
+	    arr.push(this.players[i].toDict());
+	}
+    data = {
+        ownerID: this.ownerID,
+        players: arr
+    }
+    return data;
 }
 
 // Gets the id

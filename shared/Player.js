@@ -29,17 +29,17 @@ function Player(id, username, color) {
 }
 
 /**
- * Converts this object to a json string.
+ * Converts this object to a dictionary.
  * @return {String}
  */
-Player.prototype.toJSON = function() {
+Player.prototype.toDict = function() {
     properties = {
         id: this.id,
         username: this.username,
         color: this.color,
         ready: this.ready,
     }
-    return JSON.stringify(properties);
+    return properties;
 }
 
 /**
@@ -51,6 +51,14 @@ Player.fromJSON = function(json) {
     // Need to transfer bare data to an actual object
     data = JSON.parse(json);
     return new Player(data.id, data.username, data.color, data.ready);
+}
+
+/**
+ * Converts this object to a string.
+ * @return {String}
+ */
+ Player.prototype.toString = function() {
+    return JSON.stringify(this.toDict());
 }
 
 if (typeof module === 'object') {

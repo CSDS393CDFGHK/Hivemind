@@ -64,10 +64,6 @@ function onMessage(message, ws) {
 	}
 	let toClientMessages = lobby.handleMessage(msg);
 
-	for (i = 0; i < toClientMessages.length; i++) {
-		sendMessage(toClientMessages[i]);
-	}
-
 	// Handles websockets and lobby deletion
 	if (msg.type == MessageType.PLAYER_JOIN) {
 		sockets[msg.lobbyID][msg.sourceID] = ws;
@@ -77,6 +73,10 @@ function onMessage(message, ws) {
 
 		} 
 		// TODO Actually do this
+	}
+
+	for (i = 0; i < toClientMessages.length; i++) {
+		sendMessage(toClientMessages[i]);
 	}
 }
 

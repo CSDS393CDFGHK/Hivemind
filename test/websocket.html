@@ -9,7 +9,6 @@
     <script src="../shared/MessageType.js"></script>
     <script src="../shared/Player.js"></script>
     <script type="text/javascript">
-        console.log("Hello World");
 
         // Let us open a web socket
         var ws = new WebSocket("ws://localhost:8000");
@@ -28,10 +27,11 @@
           let msg = Message.fromJSON(message);
           
           if (msg.type == MessageType.USERNAME) {
-            console.log("New player creation with message: " + msg.type);
-            let data = JSON.parse(msg.data);
-            let p = new Player(data["id"], data["username"], data["color"], data["ready"]);
-            console.log("New player: " + p.id);
+            let p = new Player(msg.data["id"], msg.data["username"], "testColor");
+          }
+
+          if (msg.type == MessageType.PLAYER_JOIN) {
+            let p = new Player(msg.data["id"], msg.data["username"], msg.data["color"]);
           }
 
           if (msg.type == MessageType.LOBBY_ID) {
