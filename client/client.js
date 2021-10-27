@@ -196,8 +196,7 @@ function onChangeSettings(){
  * @return {Boolean} Returns whether the username was valid
  * */ 
 function validUsername(word){
-	word = word.trim();
-	if(/^[\x00-\x7F]+$/.test(word)===false) return false;
+	if(/^[\x00-\x7F]+$/.test(word)===false || /\s/g.test(word)==true) return false;
 	else return true;
 }
 
