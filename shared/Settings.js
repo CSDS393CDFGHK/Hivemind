@@ -25,6 +25,14 @@ Settings.prototype.toJSON = function() {
     return JSON.stringify(properties);
 }
 
+Settings.prototype.toDict = function() {
+    properties = {
+        turnTimeLimit: this.turnTimeLimit,
+        gameLength: this.gameLength
+    }
+    return properties;
+}
+
 /**
  * Static method to convert a json string to a Settings object.
  * @param {String} json

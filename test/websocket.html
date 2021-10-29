@@ -8,6 +8,7 @@
     <script src="../shared/Message.js"></script>
     <script src="../shared/MessageType.js"></script>
     <script src="../shared/Player.js"></script>
+    <script src="../shared/Settings.js"></script>
     <script type="text/javascript">
 
         // Let us open a web socket
@@ -34,6 +35,12 @@
             let p = new Player(msg.data["id"], msg.data["username"], msg.data["color"]);
           }
 
+          if (msg.type == MessageType.SETTINGS) {
+            // this doesn't work
+            // console.log(msg);
+            let s = new Settings(msg.data["turnTimeLimit"], msg.data["gameLength"]);
+          }
+
           if (msg.type == MessageType.LOBBY_ID) {
             let lobbyID = msg.lobbyID;
             // Send a username
@@ -43,7 +50,13 @@
             m = new Message(-1, "newid", MessageType.PLAYER_JOIN, lobbyID);
             ws.send(m.toJSON());
             m = new Message(-1, "newid", MessageType.USERNAME, lobbyID, {"username":"TestSubjectBlue"});
-            ws.send(m.toJSON());   
+            ws.send(m.toJSON());
+            m = new Message(-1, "ownerid", MessageType.SETTINGS, lobbyID, {"turnTimeLimit":15, "gameLength":15})
+            ws.send(m.toJSON());
+            m = new Message(-1, "newid", MessageType.READY, lobbyID, {"ready":true});
+            ws.send(m.toJSON());
+            m = new Message(-1, "ownerid", MessageType.READY, lobbyID, {"ready":true});
+            ws.send(m.toJSON());
           }
         };
 

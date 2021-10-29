@@ -65,7 +65,11 @@ Lobby.prototype.handleMessage = function(msg) {
  * @return {Message[]} List of messages to send back to clients
  */
 Lobby.prototype.handleSettingsChange = function(msg) {
-
+    let newSettings = new Settings(msg.data["turnTimeLimit"], msg.data["gameLength"]);
+    this.settings = newSettings;
+    console.log(newSettings.toDict()["turnTimeLimit"]);
+    let settingsMsg = new Message("all", "", MessageType.SETTINGS, this.lobbyID, newSettings.toDict());
+    return [settingsMsg];
 }
 
 /**
@@ -120,7 +124,13 @@ Lobby.prototype.handlePlayerLeave = function(msg) {
  * @return {Message[]} List of messages to send back to clients
  */
 Lobby.prototype.handleReadyChange = function(msg) {
-
+    let player = this.getPlayer(msg.sourceID);
+    player.ready = msg.data["ready"];
+    if(this.gameShouldStart()) {
+        this.triggerGameStart();
+    }
+    let readyMsg = new Message("all", "",  MessageType.READY, this.lobbyID, {"id":msg.sourceID, "ready":player.ready});
+    return [readyMsg];
 }
 
 /**
@@ -129,14 +139,22 @@ Lobby.prototype.handleReadyChange = function(msg) {
  * @return {Boolean}
  */
 Lobby.prototype.gameShouldStart = function() {
-
+    if(this.players.length < 2) {
+        return false;
+    }
+    for(let i = 0; i < this.players.length; i++) {
+        if(!this.players[i].ready) {
+            return false;
+        }
+    }
+    return true;
 }
 
 /**
  * Does required actions when starting the game. State goes from LOBBY -> GAME
  */
 Lobby.prototype.triggerGameStart = function() {
-
+    console.log("Trigger game start!!!!!!!!");
 }
 
 /**
@@ -145,7 +163,7 @@ Lobby.prototype.triggerGameStart = function() {
  * @return {Player}
  */
 Lobby.prototype.getPlayer = function(id) {
-	for (i = 0; i < this.players.length; i++) {
+	for (let i = 0; i < this.players.length; i++) {
 		if (this.players[i].id == id) {
 			return this.players[i];
 		}
@@ -168,7 +186,7 @@ Lobby.prototype.getSocket = function(id) {
  */
  Lobby.prototype.toPlayerDataDict = function() {
      let arr = []
-    for (i = 0; i < this.players.length; i++) {
+    for (let i = 0; i < this.players.length; i++) {
 	    arr.push(this.players[i].toDict());
 	}
     data = {
