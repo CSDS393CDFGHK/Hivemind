@@ -52,10 +52,10 @@ Lobby.prototype.handleMessage = function(msg) {
         case MessageType.LOBBY_STATE:
         case MessageType.CREATE_LOBBY:
             console.log('Recieved Bad Message Type: ' + msg.type);
-            break;
+            return [];
         default:
             console.log('Recieved Unknown Message Type: ' + msg.type);
-            break;
+            return [];
     }
 }
 
@@ -67,7 +67,6 @@ Lobby.prototype.handleMessage = function(msg) {
 Lobby.prototype.handleSettingsChange = function(msg) {
     let newSettings = new Settings(msg.data["turnTimeLimit"], msg.data["gameLength"]);
     this.settings = newSettings;
-    console.log(newSettings.toDict()["turnTimeLimit"]);
     let settingsMsg = new Message("all", "", MessageType.SETTINGS, this.lobbyID, newSettings.toDict());
     return [settingsMsg];
 }
@@ -115,7 +114,17 @@ Lobby.prototype.handlePlayerJoin = function(msg) {
  * @return {Message[]} List of messages to send back to clients
  */
 Lobby.prototype.handlePlayerLeave = function(msg) {
-    
+    let p = this.getPlayer(msg.sourceID);
+    this.players.splice(this.players.indexOf(p));
+
+    if (p.id == this.ownerID && this.players.length > 0) {
+        this.ownerID = this.players[0].id;
+    }
+
+    // Informs the other players in the lobby that a player has left
+    let playerLeaveMsg = new Message("all", "",  MessageType.PLAYER_LEAVE, this.lobbyID, {"id":msg.sourceID, "ownerID":this.ownerID});
+
+    return [playerLeaveMsg];
 }
 
 /**
@@ -169,15 +178,6 @@ Lobby.prototype.getPlayer = function(id) {
 		}
 	}
 	return null;
-}
-
-/**
- * Returns a player's WebSocket by ther id, or null
- * @param {int} id The player associated with the websocket's id
- * @return {WebSocket}
- */
-Lobby.prototype.getSocket = function(id) {
-
 }
 
 /**

@@ -38,7 +38,7 @@
           if (msg.type == MessageType.SETTINGS) {
             // this doesn't work
             // console.log(msg);
-            let s = new Settings(msg.data["turnTimeLimit"], msg.data["gameLength"]);
+            // let s = new Settings(msg.data["turnTimeLimit"], msg.data["gameLength"]);
           }
 
           if (msg.type == MessageType.LOBBY_ID) {
@@ -47,16 +47,16 @@
             m = new Message(-1, "ownerid", MessageType.USERNAME, lobbyID, {"username":"CoolGuy32"});
             ws.send(m.toJSON());    
             // Add a player and change their username
-            m = new Message(-1, "newid", MessageType.PLAYER_JOIN, lobbyID);
-            ws.send(m.toJSON());
-            m = new Message(-1, "newid", MessageType.USERNAME, lobbyID, {"username":"TestSubjectBlue"});
-            ws.send(m.toJSON());
-            m = new Message(-1, "ownerid", MessageType.SETTINGS, lobbyID, {"turnTimeLimit":15, "gameLength":15})
-            ws.send(m.toJSON());
-            m = new Message(-1, "newid", MessageType.READY, lobbyID, {"ready":true});
-            ws.send(m.toJSON());
-            m = new Message(-1, "ownerid", MessageType.READY, lobbyID, {"ready":true});
-            ws.send(m.toJSON());
+            // m = new Message(-1, "newid", MessageType.PLAYER_JOIN, lobbyID);
+            // ws.send(m.toJSON());
+            // m = new Message(-1, "newid", MessageType.USERNAME, lobbyID, {"username":"TestSubjectBlue"});
+            // ws.send(m.toJSON());
+            // m = new Message(-1, "ownerid", MessageType.SETTINGS, lobbyID, {"turnTimeLimit":15, "gameLength":15})
+            // ws.send(m.toJSON());
+            // m = new Message(-1, "newid", MessageType.READY, lobbyID, {"ready":true});
+            // ws.send(m.toJSON());
+            // m = new Message(-1, "ownerid", MessageType.READY, lobbyID, {"ready":true});
+            // ws.send(m.toJSON());
           }
         };
 

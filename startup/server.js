@@ -14,6 +14,7 @@ const SERVER_PORT = 8000;
 const wss = new ws.Server( { noServer: true });
 let lobbies = [];
 let sockets = {};
+let socketsToPlayers = {};
 
 console.log("Server exists now");
 
@@ -35,8 +36,13 @@ function onSocketAction(ws) {
 	});
 
 	ws.on('close', function close() {
-		socketToPlayer.delete(ws);
-		sendAllActivePlayerIDs();
+		let playerID = socketsToPlayers[ws]["playerID"];
+		let lobbyID = socketsToPlayers[ws]["lobbyID"];
+		let m = new Message(-1, playerID, MessageType.PLAYER_LEAVE, lobbyID);
+       	console.log("Player " + playerID + " in " + lobbyID + " has left.");
+		delete socketsToPlayers[ws];
+		delete sockets[lobbyID][playerID];
+		onMessage(m.toJSON(), ws);
 	});
 }
 
@@ -50,6 +56,9 @@ function onMessage(message, ws) {
 		lobbies.push(new Lobby(lobbyID, msg.sourceID));
 		sockets[lobbyID] = {};
 		sockets[lobbyID][msg.sourceID] = ws;
+		socketsToPlayers[ws] = {"lobbyID":lobbyID, "playerID":msg.sourceID};
+
+		console.log(`Created lobby ${lobbyID} with owner ${msg.sourceID}`);
 
 		// Tell client the new lobby id
 		sendMessage(new Message(msg.sourceID, "", MessageType.LOBBY_ID, lobbyID, {}));
@@ -67,12 +76,16 @@ function onMessage(message, ws) {
 	// Handles websockets and lobby deletion
 	if (msg.type == MessageType.PLAYER_JOIN) {
 		sockets[msg.lobbyID][msg.sourceID] = ws;
+		socketsToPlayers[ws] = {"lobbyID":msg.lobbyID, "playerID":msg.sourceID};
+		console.log(`Player ${msg.sourceID} has joined ${msg.lobbyID}`);
 	} else if (msg.type == MessageType.PLAYER_LEAVE) {
 		// Delete lobby if there are no players
-		if (lobby.players.length <= 0) {
+		if (lobby.players.length == 0) {
+			lobbies.splice(lobbies.indexOf(lobby));
 
+			console.log(`Deleted empty lobby ${lobby.lobbyID}`);
+			delete sockets[lobby.lobbyID];
 		} 
-		// TODO Actually do this
 	}
 
 	for (i = 0; i < toClientMessages.length; i++) {
@@ -104,41 +117,18 @@ function getLobby(id) {
 
 // Sends a message to the client based on id (or to all if the targetID is "all")
 function sendMessage(msg) {
+	// If the lobby has been deleted or msg has an invalid lobbyID
+	if (!(msg.lobbyID in sockets)) {
+		return;
+	}
+
 	if (msg.targetID == "all") {
 		Object.keys(sockets[msg.lobbyID]).forEach(key => {
 			sockets[msg.lobbyID][key].send(msg.toJSON());
 		})
 		return;
 	}
+
+	// Send to a single person if not sending to all
 	sockets[msg.lobbyID][msg.targetID].send(msg.toJSON());
 }
-
-//helper functions
-/*---------------------------------*/
-
-function sendAllActivePlayerIDs() {
-	let s = getAllActivePlayerIDs();
-	wss.clients.forEach(function each(client) {
-		if (socketToPlayer.get(client) != null)
-			client.send("Your ID: " + (socketToPlayer.get(client)).id + " Everyone: " + s);
-
-	});
-}
-
-function getAllActivePlayerIDs() {
-	let str = "";
-	wss.clients.forEach(function each(client) {
-		if (socketToPlayer.get(client) != null)
-			str += socketToPlayer.get(client).id + " ";
-	});
-	return str;
-}
-
-function createLobby(lobbyID, owner) {
-    let l = new Lobby(lobbyID, owner);
-    (l.players).add(p);
-    lobbies.push(l);
-   // console.log(lobby.owner);
-}
-
-/*---------------------------------*/
