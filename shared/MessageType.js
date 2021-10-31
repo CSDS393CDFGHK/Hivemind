@@ -10,7 +10,6 @@ const MessageType = {
     PLAYER_LEAVE: "player_leave",
     WORD: "word",
     CREATE_LOBBY: "create_lobby",
-    LOBBY_ID: "lobby_id",
     PLAYER_DATA: "player_data",
     NEXT_TURN: "next_turn",
     LOBBY_STATE: "lobby_state",

@@ -55,13 +55,11 @@ function onMessage(message, ws) {
 		let lobbyID = Utils.generateRandomString(8);
 		lobbies.push(new Lobby(lobbyID, msg.sourceID));
 		sockets[lobbyID] = {};
-		sockets[lobbyID][msg.sourceID] = ws;
-		socketsToPlayers[ws] = {"lobbyID":lobbyID, "playerID":msg.sourceID};
-
 		console.log(`Created lobby ${lobbyID} with owner ${msg.sourceID}`);
 
-		// Tell client the new lobby id
-		sendMessage(new Message(msg.sourceID, "", MessageType.LOBBY_ID, lobbyID, {}));
+        ownerJoinMessage = new Message(-1, msg.sourceID, MessageType.PLAYER_JOIN, lobbyID);
+		onMessage(ownerJoinMessage.toJSON(), ws);
+		
 		return;
 	}
 

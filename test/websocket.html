@@ -13,6 +13,7 @@
 
         // Let us open a web socket
         var ws = new WebSocket("ws://localhost:8000");
+        var hasRun = false;
 
         ws.onopen = function() {
           // Web Socket is connected, send data using send()
@@ -41,8 +42,9 @@
             // let s = new Settings(msg.data["turnTimeLimit"], msg.data["gameLength"]);
           }
 
-          if (msg.type == MessageType.LOBBY_ID) {
+          if (msg.type == MessageType.PLAYER_DATA && !hasRun) {
             let lobbyID = msg.lobbyID;
+            hasRun = true;
             // Send a username
             m = new Message(-1, "ownerid", MessageType.USERNAME, lobbyID, {"username":"CoolGuy32"});
             ws.send(m.toJSON());    

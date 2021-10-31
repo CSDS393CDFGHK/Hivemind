@@ -20,7 +20,6 @@ const MAX_PLAYERS = 12;
     this.picker = new UniqueColorPicker();
     this.lobbyID = lobbyID; // The lobby's unique id
     this.players = []; // The collection of Players in this lobby
-    this.players.push(new Player(ownerID, Utils.generateRandomString(8), this.picker.pickColor()));
     this.sockets = {}; // A dictionary of websockets, indexed by player's id
     this.settings = new Settings(20, 8); // Game settings, initialized to defaults
     this.state = LobbyState.LOBBY; // All games start in the lobby
@@ -46,7 +45,6 @@ Lobby.prototype.handleMessage = function(msg) {
             return this.handlePlayerLeave(msg);
         case MessageType.WORD:
             return this.handleWord(msg);
-        case MessageType.LOBBY_ID:
         case MessageType.PLAYER_DATA:
         case MessageType.NEXT_TURN:
         case MessageType.LOBBY_STATE:
