@@ -2,7 +2,6 @@
 /**
  * @fileoverview Client.js handles client-side sockets and events.
  */
-
 //constants used in all functions; the location of the server and the socket used to communicate
 const SERVER_WS_LOCATION = 'ws://3.144.98.109/Hivemind/startup/'; //not permanent, but where it's located now
 const socket = new WebSocket(SERVER_WS_LOCATION);
@@ -28,8 +27,6 @@ function initialize() {
 	var readyButton = document.getElementById('readyButton');
 	var submitButton = document.getElementById('submitButton');
 
-
-
 	//give buttons functionality
 	createLobby.onclick = onCreateLobbyClick;
 	readyButton.onclick = onReadyClick;
@@ -37,12 +34,14 @@ function initialize() {
 }
 
 function onSubmitClick() {
-	let attemptedUsername = '\"' + document.getElementById("username").value + '\"';
+	let attemptedUsername = document.getElementById("username").value;
 	if (validUsername(attemptedUsername)) {
-		socket.send(`{"targetID":23, "sourceID":23, "type":"username", "lobbyID":23, "data": ${attemptedUsername}}`);
+		let msg = new Message(23, 23, MessageType.USERNAME, 23, attemptedUsername);
+		socket.send(msg.toJSON());
 	}
 
 }
+
 
 /**
  * Called when you click the "Create Lobby" button the main page
@@ -59,7 +58,8 @@ function onCreateLobbyClick() {
  * Called when you click the "Ready" button in the lobby
  */
 function onReadyClick() {
-	socket.send('{"targetID":23, "sourceID":23, "type":"ready", "lobbyID":23, "data": {"hello":3}}');
+	let msg = new Message(23, 23, MessageType.READY, 23, 'N/A');
+	socket.send(msg.toJSON());
 }
 
 
@@ -187,7 +187,7 @@ function onReadyStatusChange(){
 /** Called when the player changes the settings. Sends a message to the server containing information about the settings.
  * */
 function onChangeSettings(){
-
+	
 }
 
 /**

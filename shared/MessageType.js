@@ -16,4 +16,9 @@ const MessageType = {
     LOBBY_STATE: "lobby_state",
 }
 
-module.exports = MessageType;
+if (typeof module === 'object') {
+    module.exports = MessageType;
+} else {
+	window.MessageType = MessageType;
+}
+
