@@ -10,4 +10,8 @@ const LobbyState = {
     GAME_END: "game_end",
 }
 
-module.exports = LobbyState;
+if (typeof module === 'object') {
+    module.exports = LobbyState;
+} else {
+    window.LobbyState = LobbyState;
+}

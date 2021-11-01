@@ -4,33 +4,42 @@
 
 /**
  * @constructor
- * @param {int} id Unique, secret identifier of this player
+ * @param {String} id Unique, secret identifier of this player
  * @param {String} username Display name of this player
- * @param {int} color Stores player's color as in integer representation of hex code
+ * @param {String} color Stores player's color as in integer representation of hex code
  * @param {Boolean} ready Is this player ready to start the game
- * @param {isOwner} isOwner Is this player the owner of the lobby
  */
- function Player(id, username, color, ready, isOwner) {
+ function Player(id, username, color, ready) {
     this.id = id;
     this.username = username;
     this.color = color;
     this.ready = ready;
-    this.isOwner = isOwner;
 }
 
 /**
- * Converts this object to a json string.
+ * @constructor
+ * @param {String} id Unique, secret identifier of this player
+ * @param {String} color Stores player's color as in integer representation of hex code
+ */
+function Player(id, username, color) {
+   this.id = id;
+   this.username = username;
+   this.color = color;
+   this.ready = false;
+}
+
+/**
+ * Converts this object to a dictionary.
  * @return {String}
  */
-Player.prototype.toJSON = function() {
+Player.prototype.toDict = function() {
     properties = {
         id: this.id,
         username: this.username,
         color: this.color,
         ready: this.ready,
-        isOwner: this.isOwner,
     }
-    return JSON.stringify(properties);
+    return properties;
 }
 
 /**
@@ -41,7 +50,19 @@ Player.prototype.toJSON = function() {
 Player.fromJSON = function(json) {
     // Need to transfer bare data to an actual object
     data = JSON.parse(json);
-    return new Player(data.id, data.username, data.color, data.ready, data.isOwner);
+    return new Player(data.id, data.username, data.color, data.ready);
 }
 
-module.exports = Player;
+/**
+ * Converts this object to a string.
+ * @return {String}
+ */
+ Player.prototype.toString = function() {
+    return JSON.stringify(this.toDict());
+}
+
+if (typeof module === 'object') {
+    module.exports = Player;
+} else {
+    window.Player = Player;
+}
