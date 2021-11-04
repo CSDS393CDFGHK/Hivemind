@@ -2,10 +2,10 @@
   "name": "hivemind",
   "version": "1.0.0",
   "description": "",
-  "main": "server.js",
+  "main": "startup/server.js",
   "scripts": {
     "test": "nyc mocha",
-    "start": "node server.js"
+    "start": "node startup/server.js"
   },
   "repository": {
     "type": "git",

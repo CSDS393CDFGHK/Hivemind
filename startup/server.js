@@ -6,15 +6,17 @@ const http = require('http');
 const ws = require('ws');
 const Message = require("../shared/Message.js");
 const MessageType = require("../shared/MessageType.js");
+const Utils = require("../shared/Utils.js");
 const Player = require("../shared/Player.js");
 const Lobby = require("../server/Lobby.js");
-
 
 const SERVER_PORT = 8000; 
 const wss = new ws.Server( { noServer: true });
 let lobbies = [];
-let socketToPlayer= new Map();
+let sockets = {};
+let socketsToPlayers = {};
 
+console.log("Server exists now");
 
 function accept(req, res) {
   if (!req.headers.upgrade || req.headers.upgrade.toLowerCase() != 'websocket') {
@@ -30,65 +32,64 @@ function accept(req, res) {
 
 function onSocketAction(ws) {
 	ws.on('message', function message(msg) {
-		let message = Message.fromJSON(msg);
-		switch (message.type) {
-			case MessageType.USERNAME:
-				handleUsernameMsg(ws, message);
-				break;
-
-			case MessageType.CREATE_LOBBY:
-				handleCreateLobbyMsg(ws, message);
-				break;
-
-			case MessageType.SETTINGS:
-				handleSettingsMsg(ws, message);
-				break;
-
-			case MessageType.READY:
-				handleReadyMsg(ws, message);
-				break;
-
-			case MessageType.PLAYER_JOIN:
-				handlePlayerJoinMsg(ws, message);
-				break;
-
-			case MessageType.PLAYER_LEAVE:
-				handlePlayerLeaveMsg(ws, message);
-				break;
-
-			case MessageType.WORD:
-				handleWordMsg(ws, message);
-				break;
-
-			case MessageType.LOBBY_ID:
-				handlLobbyIDMsg(ws, message);
-				break;
-
-			case MessageType.PLAYER_DATA:
-				handlePlayerDataMsg(ws, message);
-				break;
-
-			case MessageType.NEXT_TURN:
-				handleNextTurnMsg(ws, message);
-				break;
-
-			case MessageType.LOBBY_STATE:
-				handleLobbyStateMsg(ws, message);
-				break;
-			
-			default:
-				throw new Error('Recieved Unknown Message Type: ' + message.type);
-			
-		}
-		sendAllActivePlayerIDs();
+		onMessage(msg, ws);
 	});
 
 	ws.on('close', function close() {
-		socketToPlayer.delete(ws);
-		sendAllActivePlayerIDs();
+		let playerID = socketsToPlayers[ws]["playerID"];
+		let lobbyID = socketsToPlayers[ws]["lobbyID"];
+		let m = new Message(-1, playerID, MessageType.PLAYER_LEAVE, lobbyID);
+       	console.log("Player " + playerID + " in " + lobbyID + " has left.");
+		delete socketsToPlayers[ws];
+		delete sockets[lobbyID][playerID];
+		onMessage(m.toJSON(), ws);
 	});
 }
 
+function onMessage(message, ws) {
+	// console.log("Received: " + message);
+	// console.log(sockets);
+	let msg = Message.fromJSON(message);
+	// Create the lobby or find the lobby and send the message on
+	if (msg.type == MessageType.CREATE_LOBBY) {
+		let lobbyID = Utils.generateRandomString(8);
+		lobbies.push(new Lobby(lobbyID, msg.sourceID));
+		sockets[lobbyID] = {};
+		console.log(`Created lobby ${lobbyID} with owner ${msg.sourceID}`);
+
+        ownerJoinMessage = new Message(-1, msg.sourceID, MessageType.PLAYER_JOIN, lobbyID);
+		onMessage(ownerJoinMessage.toJSON(), ws);
+		
+		return;
+	}
+
+	// Sends the message on to the lobby
+	let lobby = getLobby(msg.lobbyID);
+	if (lobby == null) {
+		console.log("Lobby " + msg.lobbyID + " does not exist.");
+		return;
+	}
+	let toClientMessages = lobby.handleMessage(msg);
+
+	// Handles websockets and lobby deletion
+	if (msg.type == MessageType.PLAYER_JOIN) {
+		sockets[msg.lobbyID][msg.sourceID] = ws;
+		socketsToPlayers[ws] = {"lobbyID":msg.lobbyID, "playerID":msg.sourceID};
+		console.log(`Player ${msg.sourceID} has joined ${msg.lobbyID}`);
+	} else if (msg.type == MessageType.PLAYER_LEAVE) {
+		// Delete lobby if there are no players
+		if (lobby.players.length == 0) {
+			lobbies.splice(lobbies.indexOf(lobby));
+
+			console.log(`Deleted empty lobby ${lobby.lobbyID}`);
+			delete sockets[lobby.lobbyID];
+		} 
+	}
+
+	for (i = 0; i < toClientMessages.length; i++) {
+		sendMessage(toClientMessages[i]);
+	}
+}
 
 function startServer() {
 	if (!module.parent) {
@@ -100,108 +101,32 @@ function startServer() {
 
 startServer();
 
-
-
-//Message-handling functions
-/*---------------------------------*/
-
-/**
- * Note: If you want to see logs on the server, type "sudo pm2 logs 0". You can see old console.logs
- * and also new ones as they're printed.
- */
-function handleUsernameMsg(ws, msg) {
-	console.log("server recieved a Username message");
-	socketToPlayer.get(ws).id = JSON.stringify(msg.data); //replace with official code whenever
-}
-
-function handleSettingsMsg(ws, msg) {
-	console.log("server recieved a Settings message");
-}
-
-function handleReadyMsg(ws, msg) {
-	console.log("server recieved a Ready message");
-}
-
-function handlePlayerJoinMsg(ws, msg) {
-	console.log("server recieved a Player_Join message");
-}
-
-function handlePlayerLeaveMsg(ws, msg) {
-	console.log("server recieved a Player_Leave message");
-}
-
-function handWordMsg(ws, msg) {
-	console.log("server recieved a Word message");
-}
-
-function handleCreateLobbyMsg(ws, msg) {
-	console.log("server recieved a Create_Lobby message");
-	//make new player, map socket to player, create a lobby specified by msg
-	//Just temp code, switch this to whatever actually needs to happen on backend
-	p = new Player(generateRandomString(8), "", "", false);
-	socketToPlayer.set(ws, p);
-	createLobby(msg.lobbyID, p);
-}
-
-function handleLobbyIDMsg(ws, msg) {
-	console.log("server recieved a Lobby_ID message");
-}
-
-function handlePlayerDataMsg(ws, msg) {
-	console.log("server recieved a Player_Data message");
-}
-
-function handleNextTurnMsg(ws, msg) {
-	console.log("server recieved a Next_Turn message");
-}
-
-function handleLobbyStateMsg(ws, msg) {
-	console.log("server recieved a Lobby_State message");
+// Returns the lobby based on an input id, returns null otherwise.
+function getLobby(id) {
+	for (i = 0; i < lobbies.length; i++) {
+		if (lobbies[i].getID() == id) {
+			return lobbies[i];
+		}
+	}
+	return null;
 }
 
 /*---------------------------------*/
 
+// Sends a message to the client based on id (or to all if the targetID is "all")
+function sendMessage(msg) {
+	// If the lobby has been deleted or msg has an invalid lobbyID
+	if (!(msg.lobbyID in sockets)) {
+		return;
+	}
 
-//helper functions
-/*---------------------------------*/
+	if (msg.targetID == "all") {
+		Object.keys(sockets[msg.lobbyID]).forEach(key => {
+			sockets[msg.lobbyID][key].send(msg.toJSON());
+		})
+		return;
+	}
 
-function sendAllActivePlayerIDs() {
-	let s = getAllActivePlayerIDs();
-	wss.clients.forEach(function each(client) {
-		if (socketToPlayer.get(client) != null)
-			client.send("Your ID: " + (socketToPlayer.get(client)).id + " Everyone: " + s);
-
-	});
+	// Send to a single person if not sending to all
+	sockets[msg.lobbyID][msg.targetID].send(msg.toJSON());
 }
-
-function getAllActivePlayerIDs() {
-	let str = "";
-	wss.clients.forEach(function each(client) {
-		if (socketToPlayer.get(client) != null)
-			str += socketToPlayer.get(client).id + " ";
-	});
-	return str;
-}
-
-function generateRandomCharacter() {
-    const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-    return alphabet[Math.floor(Math.random() * alphabet.length)];
-}
-
-
-function generateRandomString(length) {
-    let result = "";
-    for (let i = 0; i < length; i++) {
-        result += generateRandomCharacter();
-    }
-    return result;
-}
-
-function createLobby(lobbyID, owner) {
-    let l = new Lobby(lobbyID, owner);
-    (l.players).add(p);
-    lobbies.push(l);
-   // console.log(lobby.owner);
-}
-
-/*---------------------------------*/

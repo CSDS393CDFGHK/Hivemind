@@ -53,4 +53,3 @@ if (typeof module === 'object') {
 	window.Message = Message;
 }
 
-

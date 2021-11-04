@@ -7,7 +7,6 @@
  * @param {int} turnTimeLimit How many seconds a player has to play a word.
  * @param {int} gameLength How long the game lasts, in number of sentences.
  */
-
 function Settings(turnTimeLimit, gameLength) {
     this.turnTimeLimit = turnTimeLimit;
     this.gameLength = gameLength;
@@ -26,6 +25,14 @@ Settings.prototype.toJSON = function() {
     return JSON.stringify(properties);
 }
 
+Settings.prototype.toDict = function() {
+    properties = {
+        turnTimeLimit: this.turnTimeLimit,
+        gameLength: this.gameLength
+    }
+    return properties;
+}
+
 /**
  * Static method to convert a json string to a Settings object.
  * @param {String} json
@@ -37,4 +44,8 @@ Settings.fromJSON = function(json) {
     return new Settings(data.turnTimeLimit, data.gameLength);
 }
 
-module.exports = Settings;
+if (typeof module === 'object') {
+    module.exports = Settings;
+} else {
+    window.Settings = Settings;
+}
