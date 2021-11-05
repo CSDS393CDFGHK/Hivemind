@@ -23,6 +23,8 @@
 					Play
 				</h2>
 				<button class="button" id="CreateLobby">Create Lobby</button>
+				<button class="button" id="JoinLobby">Join Lobby</button>
+				<input type="text" id="lobbyID" autocomplete="off" required="" minlength="1" maxlength="20" size="10" placeholder="Enter lobbyID Here">
 			</div>
 			<div class="container">
 				<h3>
@@ -62,6 +64,7 @@
 		<button class="button" id = "readyButton" style="margin-top: .5em">Ready 1/4</button>
 		</div>
 	</body>
+	<script type="module" src="../shared/Utils.js"></script>
 	<script type="module" src="../shared/Message.js"></script>
 	<script type="module" src="../shared/MessageType.js"></script>
 	<script type="module" src="client.js"></script>

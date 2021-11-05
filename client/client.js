@@ -5,6 +5,7 @@
 //constants used in all functions; the location of the server and the socket used to communicate
 const SERVER_WS_LOCATION = 'ws://3.144.98.109/Hivemind/startup/'; //not permanent, but where it's located now
 const socket = new WebSocket(SERVER_WS_LOCATION);
+const ID = Utils.generateRandomString(8);
 initialize();
 
 /**
@@ -26,11 +27,14 @@ function initialize() {
 	player.style.display = 'none';
 	var readyButton = document.getElementById('readyButton');
 	var submitButton = document.getElementById('submitButton');
+	var joinButton = document.getElementById('JoinLobby');
 
 	//give buttons functionality
 	createLobby.onclick = onCreateLobbyClick;
 	readyButton.onclick = onReadyClick;
 	submitButton.onclick = onSubmitClick;
+	joinButton.onclick = onJoinClick;
+
 }
 
 function onSubmitClick() {
@@ -42,16 +46,20 @@ function onSubmitClick() {
 
 }
 
+function onJoinClick() {
+	let lobby = document.getElementById('lobbyID').value;
+	if (lobby != null) {
+		socket.send(new Message(0, ID, MessageType.PLAYER_JOIN, lobby).toJSON())
+	}
+}
+
 
 /**
  * Called when you click the "Create Lobby" button the main page
  */
 function onCreateLobbyClick() {
-	socket.send('{"targetID":23, "sourceID":23, "type":"create_lobby", "lobbyID":23, "data": {"hello":3}}');
-    var landing = document.getElementById('landing');
-    landing.style.display = 'none';
-    lobby.style.display = 'block';
-	ready.style.display = 'block';
+	let msg = new Message(0, ID, MessageType.CREATE_LOBBY, 1, 'N/A');
+	socket.send(msg.toJSON());
 }
 
 /**
@@ -68,7 +76,7 @@ function onReadyClick() {
  * @param {Socket} socket The socket that is being opened
  */
 function onOpen(socket) {	
-	//
+
 }
 
 /**
@@ -84,8 +92,16 @@ function onClose(socket){
  * @param {Message} msg The incoming msg
  */
  function websocketCallback(msg) {
-	 //if msg is player leave/player join, need to refresh. Only operation currently supported.
-	refreshPlayersInLobby(msg);
+	let data_ = msg.data
+	let message = Message.fromJSON(data_)
+
+	//if join attempt was successful (i.e. lobby does exist), then switch up the HTML
+	if (message.type = MessageType.PLAYER_JOIN) {
+    	var landing = document.getElementById('landing');
+    	landing.style.display = 'none';
+    	lobby.style.display = 'block';
+		ready.style.display = 'block';
+	}
 }
 
 /**
