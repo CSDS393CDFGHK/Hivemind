@@ -5,12 +5,9 @@
 //constants used in all functions; the location of the server and the socket used to communicate
 const SERVER_WS_LOCATION = 'ws://3.144.98.109/Hivemind/startup/'; //not permanent, but where it's located now
 const socket = new WebSocket(SERVER_WS_LOCATION);
-
-
 const ID = Utils.generateRandomString(8);
 const lobbyID = null;
 let nextDivNum = 1;
-
 initialize();
 
 /**
@@ -122,6 +119,12 @@ function onClose(socket){
 				createPlayerDiv(message.data, nextDivNum);
 			}
 		}
+	//if join attempt was successful (i.e. lobby does exist), then switch up the HTML
+	if (message.type = MessageType.PLAYER_JOIN) {
+    	var landing = document.getElementById('landing');
+    	landing.style.display = 'none';
+    	lobby.style.display = 'block';
+		ready.style.display = 'block';
 	}
 }
 
