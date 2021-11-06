@@ -5,6 +5,12 @@
 //constants used in all functions; the location of the server and the socket used to communicate
 const SERVER_WS_LOCATION = 'ws://3.144.98.109/Hivemind/startup/'; //not permanent, but where it's located now
 const socket = new WebSocket(SERVER_WS_LOCATION);
+
+
+const ID = Utils.generateRandomString(8);
+const lobbyID = null;
+let nextDivNum = 1;
+
 initialize();
 
 /**
@@ -26,11 +32,14 @@ function initialize() {
 	player.style.display = 'none';
 	var readyButton = document.getElementById('readyButton');
 	var submitButton = document.getElementById('submitButton');
+	var joinButton = document.getElementById('JoinLobby');
 
 	//give buttons functionality
 	createLobby.onclick = onCreateLobbyClick;
 	readyButton.onclick = onReadyClick;
 	submitButton.onclick = onSubmitClick;
+	joinButton.onclick = onJoinClick;
+
 }
 
 function onSubmitClick() {
@@ -42,16 +51,20 @@ function onSubmitClick() {
 
 }
 
+function onJoinClick() {
+	let lobby = document.getElementById('lobbyID').value;
+	if (lobby != null) {
+		socket.send(new Message(0, ID, MessageType.PLAYER_JOIN, lobby).toJSON())
+	}
+}
+
 
 /**
  * Called when you click the "Create Lobby" button the main page
  */
 function onCreateLobbyClick() {
-	socket.send('{"targetID":23, "sourceID":23, "type":"create_lobby", "lobbyID":23, "data": {"hello":3}}');
-    var landing = document.getElementById('landing');
-    landing.style.display = 'none';
-    lobby.style.display = 'block';
-	ready.style.display = 'block';
+	let msg = new Message(0, ID, MessageType.CREATE_LOBBY, 1, 'N/A');
+	socket.send(msg.toJSON());
 }
 
 /**
@@ -68,7 +81,7 @@ function onReadyClick() {
  * @param {Socket} socket The socket that is being opened
  */
 function onOpen(socket) {	
-	//
+
 }
 
 /**
@@ -84,8 +97,32 @@ function onClose(socket){
  * @param {Message} msg The incoming msg
  */
  function websocketCallback(msg) {
-	 //if msg is player leave/player join, need to refresh. Only operation currently supported.
-	refreshPlayersInLobby(msg);
+	let data_ = msg.data
+	let message = Message.fromJSON(data_)
+
+	//if someone joined 
+
+	if (message.type = MessageType.PLAYER_JOIN) {
+		//if that person was me, switch up my HTML from landing page to lobby
+		//DEFINITELY want to enum-ify this so messing with page state isn't as ugly and is more efficient
+		console.log(message);
+		if (message.targetID == ID) {
+    		var landing = document.getElementById('landing');
+    		landing.style.display = 'none';
+    		lobby.style.display = 'block';
+			ready.style.display = 'block';
+		}
+		if (message.data != null) {
+			//if this message has the player array, great, populate everything
+			if (message.data.players != null) {
+				refreshPlayersInLobby(message.data);
+			}
+			//else the message just has the new player, add their div
+			else if (message.data.username != null) {
+				createPlayerDiv(message.data, nextDivNum);
+			}
+		}
+	}
 }
 
 /**
@@ -93,21 +130,17 @@ function onClose(socket){
  * Update by removing all, and then adding all back
  * @param {Message} msg The incoming msg
  */
-function refreshPlayersInLobby(msg) {
-	const ar = msg.data.split(" ");
-
-	//Cut off the "Your ID: Everyone" portion, get only the players.
-	const players = ar.slice(4, -1);
-	const myID = ar[2];
-	const numPlayers = players.length;
-
-	removePlayerDivs(numPlayers);
-
-	addPlayerDivs(players, numPlayers);
+function refreshPlayersInLobby(lobbyData) {
+	if (lobbyData.players != null) { 
+		let players = lobbyData.players;
+		removePlayerDivs(players.length);
+		addPlayerDivs(players, players.length);
+	}
 
 }
 
 function removePlayerDivs(numPlayers) {
+	console.log("here");
 	//set OG player to invisible, delete rest of them
 	document.getElementById('player0').style.display = 'none';
 	for (let i = 1; i <= numPlayers; i++) {
@@ -123,13 +156,15 @@ function addPlayerDivs(players, numPlayers) {
 			//expose the player0 div, edit the player name 
 			document.getElementById('player0').style.display = 'block';
 			document.getElementById('player0').style.gridColumnStart = "5";
-			document.getElementsByClassName('name')[0].textContent = players[i] //get the correct div, name field within div
+			document.getElementsByClassName('name')[0].textContent = players[i].username//get the correct div, name field within div;;
 		}
 		else {
 			//create div for new player 
 			createPlayerDiv(players[i], i);
 		}
 	}
+	//possibly update the div num
+	nextDivNum = nextDivNum < numPlayers ? numPlayers : nextDivNum;
 }
 
 function createPlayerDiv(player, playerid) {
@@ -142,10 +177,11 @@ function createPlayerDiv(player, playerid) {
 	original.parentNode.appendChild(clone);
 
 	//get the 'name' field, change it to be this players id
-	document.getElementById(clone.id).getElementsByClassName('name')[0].textContent = player;
+	document.getElementById(clone.id).getElementsByClassName('name')[0].textContent = player.username;
 	if ((playerid) % 3 != 0) {
 		document.getElementById(clone.id).style.gridColumnStart = "auto";
 	}
+	nextDivNum++;
 }
 
 /**

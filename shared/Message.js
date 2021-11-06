@@ -43,7 +43,7 @@ Message.prototype.toJSON = function() {
  */
 Message.fromJSON = function(json) {
     // Need to transfer bare data to an actual object
-    data = JSON.parse(json);
+    let data = JSON.parse(json);
     return new Message(data.targetID, data.sourceID, data.type, data.lobbyID, data.data);
 }
 
