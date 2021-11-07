@@ -45,4 +45,8 @@ describe('UniqueColorPicker', function() {
     assert.strictEqual(p2.pickColor(), "#000000");
   });
 
+  it("Should not crash if asked to free nonexistent color", function() {
+    p1.freeColor("#SDSDKJ");
+  });
+
 });

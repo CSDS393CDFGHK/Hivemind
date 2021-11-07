@@ -88,7 +88,7 @@ Lobby.prototype.handleUsernameChange = function(msg) {
  */
 Lobby.prototype.handlePlayerJoin = function(msg) {
     if (this.players.length < MAX_PLAYERS) {
-        let player = new Player(msg.sourceID, Utils.generateRandomString(8), this.picker.pickColor());
+        let player = new Player(msg.sourceID, Utils.generateRandomString(8), this.picker.pickColor(), false);
         this.players.push(player);
 
         // Informs the other players in the lobby that a new player has joined
