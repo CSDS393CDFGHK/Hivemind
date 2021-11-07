@@ -78,7 +78,7 @@ function onReadyClick() {
  * @param {Socket} socket The socket that is being opened
  */
 function onOpen(socket) {	
-
+	; //for now, don't do anything on open
 }
 
 /**
@@ -94,37 +94,28 @@ function onClose(socket){
  * @param {Message} msg The incoming msg
  */
  function websocketCallback(msg) {
-	let data_ = msg.data
-	let message = Message.fromJSON(data_)
+	let message = Message.fromJSON(msg.data)
+	console.log(message);
 
-	//if someone joined 
+	//TODO: Make this a switch
+	if (message.type == MessageType.PLAYER_JOIN) {
+		onJoinMessage(message);
+	}
 
-	if (message.type = MessageType.PLAYER_JOIN) {
-		//if that person was me, switch up my HTML from landing page to lobby
-		//DEFINITELY want to enum-ify this so messing with page state isn't as ugly and is more efficient
-		console.log(message);
+	else if (message.type == MessageType.PLAYER_DATA) {
+		//TODO: abstract this to another function, make HTML state changing more streamlined
 		if (message.targetID == ID) {
+			console.log("IDs match");
     		var landing = document.getElementById('landing');
     		landing.style.display = 'none';
     		lobby.style.display = 'block';
 			ready.style.display = 'block';
 		}
-		if (message.data != null) {
-			//if this message has the player array, great, populate everything
-			if (message.data.players != null) {
-				refreshPlayersInLobby(message.data);
-			}
-			//else the message just has the new player, add their div
-			else if (message.data.username != null) {
-				createPlayerDiv(message.data, nextDivNum);
-			}
-		}
-	//if join attempt was successful (i.e. lobby does exist), then switch up the HTML
-	if (message.type = MessageType.PLAYER_JOIN) {
-    	var landing = document.getElementById('landing');
-    	landing.style.display = 'none';
-    	lobby.style.display = 'block';
-		ready.style.display = 'block';
+		refreshPlayersInLobby(message.data);
+	}
+
+	else if (message.type == MessageType.PLAYER_LEAVE) {
+		removePlayerDiv(message.data.id);
 	}
 }
 
@@ -142,9 +133,13 @@ function refreshPlayersInLobby(lobbyData) {
 
 }
 
+/**
+ * Remove all divs currently in the lobby
+ * @param {numPlayers} the number divs to possibly remove
+ */
 function removePlayerDivs(numPlayers) {
 	console.log("here");
-	//set OG player to invisible, delete rest of them
+	//set OG div to invisible, delete rest of them
 	document.getElementById('player0').style.display = 'none';
 	for (let i = 1; i <= numPlayers; i++) {
 		if (document.getElementById('player' + i) !== null)
@@ -152,6 +147,33 @@ function removePlayerDivs(numPlayers) {
 	}
 }
 
+/**
+ * Remove the div corresponding to a specific player
+ * @param {playerid} the ID of the player to remove
+ */
+function removePlayerDiv(playerid) {
+	console.log(playerid);
+	var removed = false;
+	if (document.getElementById('player0').getElementsByClassName('p_id')[0].textContent == playerid) {
+		document.getElementById('player0').style.display = 'none';
+	}
+	//if other players have left, nextDivNum != numPlayers, so iterate over all possible
+	for (let i = 0; i <=  nextDivNum && !removed; i++) {
+		let div = document.getElementById('player' + i);
+		if (div != null) {
+			console.log(div.getElementsByClassName('p_id')[0].textContent);
+		}
+		if (div != null && div.getElementsByClassName('p_id')[0].textContent == playerid) {
+			div.remove();
+		}
+	}
+}
+
+/**
+ * Given a list of all players, add their divs
+ * @param {players} the list of players to add
+ * @param {numPlayers} the number of players in the list
+ */
 function addPlayerDivs(players, numPlayers) {
 	//(i - 1) = id of last player div displayed (i.e. when i == 0, no player divs have been displayed)
 	for (let i = 0; i < numPlayers; i++) {
@@ -159,7 +181,8 @@ function addPlayerDivs(players, numPlayers) {
 			//expose the player0 div, edit the player name 
 			document.getElementById('player0').style.display = 'block';
 			document.getElementById('player0').style.gridColumnStart = "5";
-			document.getElementsByClassName('name')[0].textContent = players[i].username//get the correct div, name field within div;;
+			document.getElementById('player0').getElementsByClassName('name')[0].textContent = players[i].username//get the correct div, name field within div;;
+			document.getElementById('player0').getElementsByClassName('p_id')[0].textContent = players[i].id;
 		}
 		else {
 			//create div for new player 
@@ -170,18 +193,24 @@ function addPlayerDivs(players, numPlayers) {
 	nextDivNum = nextDivNum < numPlayers ? numPlayers : nextDivNum;
 }
 
-function createPlayerDiv(player, playerid) {
-	//get the last made player div
-	var original = document.getElementById('player' + 0);
+/**
+ * Create a single player div
+ * @param {player} the information of the player whose div we want to create
+ * @param {divNum} the identifier used on the frontend to create identifiable, iterable divs
+ */
+function createPlayerDiv(player, divNum) {
+	var original = null;
+	var original = document.getElementById('player' + 0); //A possible cause for weird HTML bugs, likely want to change at some point 
 
 	//copy the div, change its ID, append it 
 	var clone = original.cloneNode(true);
-	clone.id = "player" + (playerid); // there can only be one element with an ID
+	clone.id = "player" + (divNum); // there can only be one element with an particular div num
 	original.parentNode.appendChild(clone);
 
 	//get the 'name' field, change it to be this players id
 	document.getElementById(clone.id).getElementsByClassName('name')[0].textContent = player.username;
-	if ((playerid) % 3 != 0) {
+	document.getElementById(clone.id).getElementsByClassName('p_id')[0].textContent = player.id;
+	if ((divNum) % 3 != 0) {
 		document.getElementById(clone.id).style.gridColumnStart = "auto";
 	}
 	nextDivNum++;
@@ -201,9 +230,11 @@ function handleGameStart(){
 
 }
 
-/**  Called when the player joins a game. Sends data about the player to the server */
-function onJoin(){
 
+function onJoinMessage(message){
+	if (message.data != null && message.data.username != null) {
+		createPlayerDiv(message.data, nextDivNum);
+	}
 }
 
 /**  Sends a CreateLobby message to the server */
