@@ -17,18 +17,6 @@
 }
 
 /**
- * @constructor
- * @param {String} id Unique, secret identifier of this player
- * @param {String} color Stores player's color as in integer representation of hex code
- */
-function Player(id, username, color) {
-   this.id = id;
-   this.username = username;
-   this.color = color;
-   this.ready = false;
-}
-
-/**
  * Converts this object to a dictionary.
  * @return {String}
  */

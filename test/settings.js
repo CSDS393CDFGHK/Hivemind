@@ -13,4 +13,7 @@ describe('Settings', function() {
     assert.deepStrictEqual(Settings.fromJSON(s.toJSON()), s);
   });
 
+  it("Should convert from dictionary to an equal object", function() {
+    assert.deepStrictEqual(Settings.fromJSON(JSON.stringify(s.toDict())), s);
+  });
 });

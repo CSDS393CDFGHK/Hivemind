@@ -88,7 +88,7 @@ Lobby.prototype.handleUsernameChange = function(msg) {
  */
 Lobby.prototype.handlePlayerJoin = function(msg) {
     if (this.players.length < MAX_PLAYERS) {
-        let player = new Player(msg.sourceID, Utils.generateRandomString(8), this.picker.pickColor());
+        let player = new Player(msg.sourceID, Utils.generateRandomString(8), this.picker.pickColor(), false);
         this.players.push(player);
 
         // Informs the other players in the lobby that a new player has joined
@@ -113,7 +113,7 @@ Lobby.prototype.handlePlayerJoin = function(msg) {
  */
 Lobby.prototype.handlePlayerLeave = function(msg) {
     let p = this.getPlayer(msg.sourceID);
-    this.players.splice(this.players.indexOf(p));
+    this.players.splice(this.players.indexOf(p), 1); // Splice to remove 1 element from array at the player's index
 
     if (p.id == this.ownerID && this.players.length > 0) {
         this.ownerID = this.players[0].id;
