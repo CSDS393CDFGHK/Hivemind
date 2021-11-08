@@ -214,7 +214,6 @@ function addPlayerDivs(players, numPlayers) {
  * @param {divNum} the identifier used on the frontend to create identifiable, iterable divs
  */
 function createPlayerDiv(player, divNum) {
-	var original = null;
 	var original = document.getElementById('player' + 0);
 
 	//copy the div, change its ID, append it 
@@ -256,7 +255,8 @@ function onUsernameTyped(){
 function onJoin() {
 	lobbyID = document.getElementById('lobbyID').value;
 	if (lobbyID != null) {
-		socket.send(new Message(0, ID, MessageType.PLAYER_JOIN, lobbyID).toJSON())
+		let msg = new Message(0, ID, MessageType.PLAYER_JOIN, lobbyID);
+		socket.send(msg.toJSON());
 	}
 }
 
