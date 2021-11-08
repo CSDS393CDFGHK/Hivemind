@@ -100,8 +100,8 @@ function onPlayerDataMessage(message) {
     var landing = document.getElementById('landing');
     landing.style.display = 'none';
     lobby.style.display = 'block';
-	ready.style.display = 'block';
-	initializePlayersInLobby(message.data);
+    ready.style.display = 'block';
+    initializePlayersInLobby(message.data);
 }
 
 function onUsernameMessage(message) {
