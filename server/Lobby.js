@@ -113,7 +113,7 @@ Lobby.prototype.handlePlayerJoin = function(msg) {
  */
 Lobby.prototype.handlePlayerLeave = function(msg) {
     let p = this.getPlayer(msg.sourceID);
-    this.players.splice(this.players.indexOf(p));
+    this.players.splice(this.players.indexOf(p), 1); // Splice to remove 1 element from array at the player's index
 
     if (p.id == this.ownerID && this.players.length > 0) {
         this.ownerID = this.players[0].id;

@@ -14,7 +14,6 @@ const SERVER_PORT = 8000;
 const wss = new ws.Server( { noServer: true });
 let lobbies = [];
 let sockets = {};
-let socketsToPlayers = {};
 
 console.log("Server exists now");
 
@@ -36,12 +35,19 @@ function onSocketAction(ws) {
 	});
 
 	ws.on('close', function close() {
-		let playerID = socketsToPlayers[ws]["playerID"];
-		let lobbyID = socketsToPlayers[ws]["lobbyID"];
+		// ws's only get this property when the player joins a lobby
+		if (!ws.hasOwnProperty('playerLobbyID')) {
+			return;
+		}
+
+		// Extract the player and lobby ID this ws belongs to
+		let playerID = ws.playerLobbyID["playerID"];
+		let lobbyID = ws.playerLobbyID["lobbyID"];
+
+		console.log("Player " + playerID + " in " + lobbyID + " has left.");
+
+		// Create "fake" message to tell lobby a player has left
 		let m = new Message(-1, playerID, MessageType.PLAYER_LEAVE, lobbyID);
-       	console.log("Player " + playerID + " in " + lobbyID + " has left.");
-		delete socketsToPlayers[ws];
-		delete sockets[lobbyID][playerID];
 		onMessage(m.toJSON(), ws);
 	});
 }
@@ -57,7 +63,7 @@ function onMessage(message, ws) {
 		sockets[lobbyID] = {};
 		console.log(`Created lobby ${lobbyID} with owner ${msg.sourceID}`);
 
-        ownerJoinMessage = new Message(-1, msg.sourceID, MessageType.PLAYER_JOIN, lobbyID);
+		ownerJoinMessage = new Message(-1, msg.sourceID, MessageType.PLAYER_JOIN, lobbyID);
 		onMessage(ownerJoinMessage.toJSON(), ws);
 		
 		return;
@@ -69,23 +75,27 @@ function onMessage(message, ws) {
 		console.log("Lobby " + msg.lobbyID + " does not exist.");
 		return;
 	}
+
 	let toClientMessages = lobby.handleMessage(msg);
 
 	// Handles websockets and lobby deletion
 	if (msg.type == MessageType.PLAYER_JOIN) {
+		// In javascript, you can add random variables to any object
+		// We are using that to associate each ws with their player/lobby ID
+		ws.playerLobbyID = {"lobbyID":msg.lobbyID, "playerID":msg.sourceID};
 		sockets[msg.lobbyID][msg.sourceID] = ws;
-		socketsToPlayers[ws] = {"lobbyID":msg.lobbyID, "playerID":msg.sourceID};
 		console.log(`Player ${msg.sourceID} has joined ${msg.lobbyID}`);
 	} else if (msg.type == MessageType.PLAYER_LEAVE) {
 		// Delete lobby if there are no players
 		if (lobby.players.length == 0) {
-			lobbies.splice(lobbies.indexOf(lobby));
+			lobbies.splice(lobbies.indexOf(lobby), 1);  // Splice to remove 1 element from array at the lobby's index
 
 			console.log(`Deleted empty lobby ${lobby.lobbyID}`);
 			delete sockets[lobby.lobbyID];
 		} 
 	}
 
+	// Send messages back to clients
 	for (i = 0; i < toClientMessages.length; i++) {
 		sendMessage(toClientMessages[i]);
 	}
