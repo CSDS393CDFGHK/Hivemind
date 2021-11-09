@@ -97,7 +97,7 @@ Lobby.prototype.handlePlayerJoin = function(msg) {
         // Sends player, lobby state, and settings data to the new player
         let informNewPlayerMsg = new Message(msg.sourceID, "", MessageType.PLAYER_DATA, this.lobbyID, this.toPlayerDataDict());
         let lobbyStateMsg = new Message(msg.sourceID, "", MessageType.LOBBY_STATE, this.lobbyID, this.state);
-        let settingsMsg = new Message(msg.sourceID, "", MessageType.SETTINGS, this.lobbyID, null/*Settings*/);
+        let settingsMsg = new Message(msg.sourceID, "", MessageType.SETTINGS, this.lobbyID, this.settings.toDict());
 
         return [playerJoinMsg, informNewPlayerMsg, lobbyStateMsg, settingsMsg];
     } else {
