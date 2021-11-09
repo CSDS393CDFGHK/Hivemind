@@ -24,6 +24,8 @@ const MAX_PLAYERS = 12;
     this.settings = new Settings(20, 8); // Game settings, initialized to defaults
     this.state = LobbyState.LOBBY; // All games start in the lobby
     this.ownerID = ownerID; // The ownerID of the lobby
+
+    this.cumulative_players = 0; // Used to give players unique "Player N" names
 }
 
 /**
@@ -88,8 +90,11 @@ Lobby.prototype.handleUsernameChange = function(msg) {
  */
 Lobby.prototype.handlePlayerJoin = function(msg) {
     if (this.players.length < MAX_PLAYERS) {
-        let player = new Player(msg.sourceID, Utils.generateRandomString(8), this.picker.pickColor(), false);
+        // Create the new player
+        let username = "Player " + this.cumulative_players;
+        let player = new Player(msg.sourceID, username, this.picker.pickColor(), false);
         this.players.push(player);
+        this.cumulative_players += 1;
 
         // Informs the other players in the lobby that a new player has joined
         let playerJoinMsg = new Message("all", "",  MessageType.PLAYER_JOIN, this.lobbyID, player.toDict());
