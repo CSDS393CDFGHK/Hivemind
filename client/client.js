@@ -2,6 +2,7 @@
 /**
  * @fileoverview Client.js handles client-side sockets and events.
  */
+
 //constants used in all functions
 const SERVER_WS_LOCATION = 'ws://3.144.98.109/Hivemind/startup/'; //not permanent, but where it's located now
 const socket = new WebSocket(SERVER_WS_LOCATION);
@@ -64,7 +65,12 @@ function onOpen(socket) {
  * @param {Socket} socket The socket that is being closed
  */
 function onClose(socket){
-	; //for now, don't do anything on close
+	/*
+	 *TODO: If a websocket connection is closed due to idling (ex: leaving the app on mobile), then websockets 
+	 * The client's screen is stil just the lobby, with no indication that there's an issue. Probably should make 
+	 * some HTML page when an error has occurred saying "disconnected from server. Please refresh to continue" or 
+	 * something else of that effect.
+	 */
 }
 
 /**
@@ -86,6 +92,9 @@ function onClose(socket){
 			break;
 		case MessageType.USERNAME:
 			onUsernameMessage(message);
+			break;
+		case MessageType.SETTINGS:
+			onSettingsMessage(message);
 			break;
 		default:
 			console.log('Messages of type ' + message.type + ' have not been configured yet.');
@@ -128,7 +137,7 @@ function onUsernameMessage(message) {
 }
 
 function onPlayerLeaveMessage(message) {
-	removePlayerDiv(message.data.id);
+	removePlayerDiv(message.data.id, message.data.ownerID);
 }
 
 function onLobbyStateMessage(message) {
@@ -136,7 +145,7 @@ function onLobbyStateMessage(message) {
 }
 
 function onSettingsMessage(message) {
-
+	let numSentences = document.getElementById('numSentences');
 }
 
 function onReadyMessage(message) {
@@ -151,10 +160,11 @@ function onReadyMessage(message) {
 function initializePlayersInLobby(lobbyData) {
 	if (lobbyData.players != null) { 
 		let players = lobbyData.players;
+		let ownerID = lobbyData.ownerID;
 		//by default a single player div is there at the top left with my username
 		//remove it and readd in proper place so formatting is consistent will all other players in lobby
 		removePlayerDivs(players.length); 
-		addPlayerDivs(players, players.length);
+		addPlayerDivs(players, players.length, ownerID);
 	}
 
 }
@@ -176,21 +186,24 @@ function removePlayerDivs(numPlayers) {
  * Remove the div corresponding to a specific player
  * @param {playerid} the ID of the player to remove
  */
-function removePlayerDiv(playerid) {
+function removePlayerDiv(playerid, ownerID) {
 	var removed = false;
 	//If it's player0 we're trying to remove, set it to invisible 
 	if (document.getElementById('player0').getElementsByClassName('p_id')[0].textContent == playerid) {
-		document.getElementById('player0').style.display = 'none';
+		var player0 = document.getElementById('player0');
+		player0.style.display = 'none';
+		//make sure background is white if copied, new players who join can't be leaders 
+		player0.getElementsByClassName('container')[0].style.backgroundColor = '#FFFFFF'; 
 	}
 	//if other players have left, nextDivNum != numPlayers, so iterate over all possible
-	for (let i = 1; i <=  nextDivNum && !removed; i++) {
+	//also look for new owner, assign their color appropriately
+	for (let i = 1; i <=  nextDivNum; i++) {
 		let div = document.getElementById('player' + i);
-		if (div != null) {
-			console.log(div.getElementsByClassName('p_id')[0].textContent);
-		}
 		if (div != null && div.getElementsByClassName('p_id')[0].textContent == playerid) {
 			div.remove();
 		}
+		else if (div.getElementsByClassName('p_id')[0].textContent == ownerID)
+			div.getElementsByClassName('container')[0].style.backgroundColor = '#F1E5AC';
 	}
 }
 
@@ -199,20 +212,26 @@ function removePlayerDiv(playerid) {
  * @param {players} the list of players to add
  * @param {numPlayers} the number of players in the list
  */
-function addPlayerDivs(players, numPlayers) {
+function addPlayerDivs(players, numPlayers, ownerID) {
 	//(i - 1) = id of last player div displayed (i.e. when i == 0, no player divs have been displayed)
 	for (let i = 0; i < numPlayers; i++) {
 		if (i == 0) {
+			var player0 = document.getElementById('player0');
 			//expose the player0 div, edit the player info 
-			document.getElementById('player0').style.display = 'block';
-			document.getElementById('player0').style.gridColumnStart = "5";
-			document.getElementById('player0').getElementsByClassName('name')[0].textContent = players[i].username//get the correct div, name field within div;;
-			document.getElementById('player0').getElementsByClassName('p_id')[0].textContent = players[i].id;
-			document.getElementById('player0').getElementsByClassName('dot')[0].style.backgroundColor = players[i].color
+			player0.style.display = 'block';
+			player0.style.gridColumnStart = "5";
+			player0.getElementsByClassName('name')[0].textContent = players[i].username//get the correct div, name field within div;;
+			player0.getElementsByClassName('p_id')[0].textContent = players[i].id;
+			player0.getElementsByClassName('dot')[0].style.backgroundColor = players[i].color
+			if (players[i].id == ownerID)
+				player0.getElementsByClassName('container')[0].style.backgroundColor = '#F1E5AC';
+			else 
+				player0.getElementsByClassName('container')[0].style.backgroundColor = '#FFFFFF';
+				
 		}
 		else {
 			//create div for new player 
-			createPlayerDiv(players[i], i);
+			createPlayerDiv(players[i], i, ownerID);
 		}
 	}
 	//possibly update the div num
@@ -223,18 +242,21 @@ function addPlayerDivs(players, numPlayers) {
  * Create a single player div * @param {player} the information of the player whose div we want to create
  * @param {divNum} the identifier used on the frontend to create identifiable, iterable divs
  */
-function createPlayerDiv(player, divNum) {
+function createPlayerDiv(player, divNum, ownerID) {
 	var original = document.getElementById('player' + 0);
 
 	//copy the div, change its ID, append it 
 	var clone = original.cloneNode(true);
 	clone.id = "player" + (divNum); 
 	original.parentNode.appendChild(clone);
-
+	
 	//get the 'name' field, change it to be this player's id
+	document.getElementById(clone.id).style.display = 'block'; //player0 may be inivisible, make sure it can be seen
 	document.getElementById(clone.id).getElementsByClassName('name')[0].textContent = player.username;
 	document.getElementById(clone.id).getElementsByClassName('p_id')[0].textContent = player.id;
 	document.getElementById(clone.id).getElementsByClassName('dot')[0].style.backgroundColor = player.color;
+	document.getElementById(clone.id).getElementsByClassName('container')[0].style.backgroundColor = '#FFFFFF';
+
 	if ((divNum) % 3 != 0) {
 		document.getElementById(clone.id).style.gridColumnStart = "auto";
 	}
