@@ -46,6 +46,9 @@ function initialize() {
 	submitButton.onclick = onUsernameTyped;
 	joinButton.onclick = onJoin;
 
+
+	
+
 }
 
 /**
@@ -53,7 +56,11 @@ function initialize() {
  * @param {Socket} socket The socket that is being opened
  */
 function onOpen(socket) {	
-	; //for now, don't do anything on open. Might not be the case l8r on.
+	//see if we're trying to join lobby from link
+	let urlSuffix = window.location.search;
+	if (urlSuffix != null) {
+		onJoinFromLink(urlSuffix.substring(1));
+	}
 }
 
 /**
@@ -262,6 +269,14 @@ function onUsernameTyped(){
 
 function onJoin() {
 	lobbyID = document.getElementById('lobbyID').value;
+	if (lobbyID != null) {
+		let msg = new Message(0, ID, MessageType.PLAYER_JOIN, lobbyID);
+		socket.send(msg.toJSON());
+	}
+}
+
+function onJoinFromLink(urlSuffix) {
+	lobbyID = urlSuffix;
 	if (lobbyID != null) {
 		let msg = new Message(0, ID, MessageType.PLAYER_JOIN, lobbyID);
 		socket.send(msg.toJSON());
