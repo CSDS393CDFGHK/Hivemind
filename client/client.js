@@ -34,6 +34,8 @@ function initialize() {
 	var createLobby = document.getElementById('CreateLobby'); 
 	var player = document.getElementById('player0');
 	player.style.display = 'none';
+	var lobbyLink = document.getElementById('lobbyLink');
+	lobbyLink.style.display = 'none';
 	var readyButton = document.getElementById('readyButton');
 	var submitButton = document.getElementById('submitButton');
 	var joinButton = document.getElementById('JoinLobby');
@@ -91,6 +93,10 @@ function onClose(socket){
 
 function onJoinMessage(message){
 	lobbyID = message.lobbyID;
+	if(lobbyID!=null && lobbyLink.style.display==='none'){
+		lobbyLink.style.display = 'block';
+		lobbyLink.textContent += lobbyID;
+	}
 	if (message.data != null && message.data.username != null) {
 		createPlayerDiv(message.data, nextDivNum);
 	}
