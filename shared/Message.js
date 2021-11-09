@@ -26,7 +26,7 @@
  */
 Message.prototype.toJSON = function() {
     // If you pass the object itself with "this", it will stringify the function names which we don't want
-    properties = {
+    let properties = {
         targetID: this.targetID,
         sourceID: this.sourceID,
         type: this.type,
@@ -43,12 +43,13 @@ Message.prototype.toJSON = function() {
  */
 Message.fromJSON = function(json) {
     // Need to transfer bare data to an actual object
-    data = JSON.parse(json);
+    let data = JSON.parse(json);
     return new Message(data.targetID, data.sourceID, data.type, data.lobbyID, data.data);
 }
 
 if (typeof module === 'object') {
     module.exports = Message;
 } else {
-    window.Message = Message;
+	window.Message = Message;
 }
+

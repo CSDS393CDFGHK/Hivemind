@@ -18,5 +18,5 @@ const MessageType = {
 if (typeof module === 'object') {
     module.exports = MessageType;
 } else {
-    window.MessageType = MessageType;
+	window.MessageType = MessageType;
 }

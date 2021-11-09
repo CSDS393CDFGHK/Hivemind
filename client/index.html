@@ -15,6 +15,7 @@
 			<div class="container">
 				<h1>Hivemind</h1>
 				<p>A free and fun game for all</p>
+				<p id="lobbyLink">http://3.144.98.109/</p>
 			</div>
 		</div>
 		<div class="landing" id="landing">
@@ -51,6 +52,7 @@
 					<div class="container" style="background-color: #FFFFFF;">
 						<div class="dot" style="background-color: green;"></div>
 						<div class="name">Steven</div>
+						<div class="p_id" hidden></div>
 				</div>
 			</div>
 		</div>
@@ -62,5 +64,8 @@
 		<button class="button" id = "readyButton" style="margin-top: .5em">Ready 1/4</button>
 		</div>
 	</body>
-	<script src="client.js"></script>
+	<script type="module" src="../shared/Utils.js"></script>
+	<script type="module" src="../shared/Message.js"></script>
+	<script type="module" src="../shared/MessageType.js"></script>
+	<script type="module" src="client.js"></script>
 </html>
