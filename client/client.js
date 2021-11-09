@@ -199,6 +199,7 @@ function addPlayerDivs(players, numPlayers) {
 			document.getElementById('player0').style.gridColumnStart = "5";
 			document.getElementById('player0').getElementsByClassName('name')[0].textContent = players[i].username//get the correct div, name field within div;;
 			document.getElementById('player0').getElementsByClassName('p_id')[0].textContent = players[i].id;
+			document.getElementById('player0').getElementsByClassName('dot')[0].style.backgroundColor = players[i].color
 		}
 		else {
 			//create div for new player 
@@ -214,7 +215,6 @@ function addPlayerDivs(players, numPlayers) {
  * @param {divNum} the identifier used on the frontend to create identifiable, iterable divs
  */
 function createPlayerDiv(player, divNum) {
-	var original = null;
 	var original = document.getElementById('player' + 0);
 
 	//copy the div, change its ID, append it 
@@ -225,6 +225,7 @@ function createPlayerDiv(player, divNum) {
 	//get the 'name' field, change it to be this player's id
 	document.getElementById(clone.id).getElementsByClassName('name')[0].textContent = player.username;
 	document.getElementById(clone.id).getElementsByClassName('p_id')[0].textContent = player.id;
+	document.getElementById(clone.id).getElementsByClassName('dot')[0].style.backgroundColor = player.color;
 	if ((divNum) % 3 != 0) {
 		document.getElementById(clone.id).style.gridColumnStart = "auto";
 	}
@@ -256,7 +257,8 @@ function onUsernameTyped(){
 function onJoin() {
 	lobbyID = document.getElementById('lobbyID').value;
 	if (lobbyID != null) {
-		socket.send(new Message(0, ID, MessageType.PLAYER_JOIN, lobbyID).toJSON())
+		let msg = new Message(0, ID, MessageType.PLAYER_JOIN, lobbyID);
+		socket.send(msg.toJSON());
 	}
 }
 
