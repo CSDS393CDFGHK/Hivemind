@@ -9,6 +9,7 @@ const ID = Utils.generateRandomString(8);
 let lobbyID = null;
 let nextDivNum = 1; //The next certainly valid number we can use for a div
 let readyStatus = false;
+let lobbyLink = null;
 
 //Enum to describe current page state: Not used yet, but will be
 const PageState = {
@@ -34,20 +35,15 @@ function initialize() {
 	var createLobby = document.getElementById('CreateLobby'); 
 	var player = document.getElementById('player0');
 	player.style.display = 'none';
-	var lobbyLink = document.getElementById('lobbyLink');
+	lobbyLink = document.getElementById('lobbyLink');
 	lobbyLink.style.display = 'none';
 	var readyButton = document.getElementById('readyButton');
 	var submitButton = document.getElementById('submitButton');
-	var joinButton = document.getElementById('JoinLobby');
 
 	//give buttons functionality
 	createLobby.onclick = onCreateLobby;
 	readyButton.onclick = onReadyStatusChange;
 	submitButton.onclick = onUsernameTyped;
-	joinButton.onclick = onJoin;
-
-
-	
 
 }
 
@@ -102,7 +98,7 @@ function onJoinMessage(message){
 	lobbyID = message.lobbyID;
 	if(lobbyID!=null && lobbyLink.style.display==='none'){
 		lobbyLink.style.display = 'block';
-		lobbyLink.textContent += lobbyID;
+		lobbyLink.textContent += '?' + lobbyID;
 	}
 	if (message.data != null && message.data.username != null) {
 		createPlayerDiv(message.data, nextDivNum);
@@ -263,14 +259,6 @@ function onUsernameTyped(){
 	let attemptedUsername = document.getElementById("username").value;
 	if (validUsername(attemptedUsername)) {
 		let msg = new Message(0, ID, MessageType.USERNAME, lobbyID, {'username':attemptedUsername} );
-		socket.send(msg.toJSON());
-	}
-}
-
-function onJoin() {
-	lobbyID = document.getElementById('lobbyID').value;
-	if (lobbyID != null) {
-		let msg = new Message(0, ID, MessageType.PLAYER_JOIN, lobbyID);
 		socket.send(msg.toJSON());
 	}
 }
