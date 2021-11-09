@@ -205,6 +205,7 @@ function addPlayerDivs(players, numPlayers) {
 			document.getElementById('player0').style.gridColumnStart = "5";
 			document.getElementById('player0').getElementsByClassName('name')[0].textContent = players[i].username//get the correct div, name field within div;;
 			document.getElementById('player0').getElementsByClassName('p_id')[0].textContent = players[i].id;
+			document.getElementById('player0').getElementsByClassName('dot')[0].style.backgroundColor = players[i].color
 		}
 		else {
 			//create div for new player 
@@ -230,6 +231,7 @@ function createPlayerDiv(player, divNum) {
 	//get the 'name' field, change it to be this player's id
 	document.getElementById(clone.id).getElementsByClassName('name')[0].textContent = player.username;
 	document.getElementById(clone.id).getElementsByClassName('p_id')[0].textContent = player.id;
+	document.getElementById(clone.id).getElementsByClassName('dot')[0].style.backgroundColor = player.color;
 	if ((divNum) % 3 != 0) {
 		document.getElementById(clone.id).style.gridColumnStart = "auto";
 	}
