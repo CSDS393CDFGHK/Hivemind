@@ -11,8 +11,6 @@ var should = require('chai').should()
 
 // Start the server here.
 describe("Create Lobby", function() {
-    var server;
-
     // Run this code before all the tests
     before(() => {
         SERVER_PORT = Math.floor(Math.random()*60000+2000); // A random port from 2000-62000
@@ -24,8 +22,12 @@ describe("Create Lobby", function() {
         // Count messages recieved. Hacky ish way to tell when we are done
         messagesRecieved = 0;
 
-        // Client gets to choose playerID, but server makes lobbyID
+        // Client gets to choose playerID
         player1ID = "player1";
+        player2ID = "player2";
+        
+        // Store lobbyID from server
+        lobbyID = "";
     });
 
     it('Will create lobby and send messages back', function(done) {
@@ -36,48 +38,79 @@ describe("Create Lobby", function() {
 
         // Handle and check all messages recieved
         ws1.on('message', function message(message) {
-            msg = Message.fromJSON(message);
+            validateCreateLobbyMsgs(message, done)
+        });
+    });
 
-            // Check all messages for validity
-            checkGenericMsg(msg);
+    it('Player will leave without error', function() {
+        ws1.close();
+    });
 
-            // Check the message based on its type
-            switch (msg.type) {
-                case MessageType.SETTINGS:
-                    checkSettingsMsg(msg);
-                    break;
-                case MessageType.PLAYER_JOIN:
-                    checkPlayerJoinMsg(msg);
-                    break;
-                case MessageType.PLAYER_DATA:
-                    checkPlayerDataMsg(msg);
-                    break;
-                case MessageType.LOBBY_STATE:
-                    checkLobbyStateMsg(msg);
-                    break;
-                default:
-                    throw("Unknown message type: " + msg.type);
-                    break;
-            };
+    it('New player can no longer join lobby', function(done) {
+        ws2 = new ws.WebSocket("ws://localhost:" + SERVER_PORT);
 
-            // We are done when we recieve 4 messages from the server
-            // Note this does not check they are unique messages
-            messagesRecieved += 1;
-            if (messagesRecieved == 4) {
-                done();
-            }
+        ws2.on('open', function open() {
+            sendJoinLobbyMessage(ws2, player2ID, lobbyID);
+            done();
+        });
+
+        // Since player1 left, the lobby shouldn't exist anymore
+        ws2.on('message', function message(message) {
+            throw("Player 2 should not be able to join lobby");
         });
     });
 
     // Close everything, otherwise mocha hangs
     after(function() {
         ws1.close();
+        ws2.close();
         server.close();
     });
 });
 
+// Handles all messages recieved by sending a create lobby message
+function validateCreateLobbyMsgs(message, done) {
+    msg = Message.fromJSON(message);
+
+    lobbyID = msg.lobbyID;
+
+    // Check all messages for validity
+    checkGenericMsg(msg);
+
+    // Check the message based on its type
+    switch (msg.type) {
+        case MessageType.SETTINGS:
+            checkSettingsMsg(msg);
+            break;
+        case MessageType.PLAYER_JOIN:
+            checkPlayerJoinMsg(msg);
+            break;
+        case MessageType.PLAYER_DATA:
+            checkPlayerDataMsg(msg);
+            break;
+        case MessageType.LOBBY_STATE:
+            checkLobbyStateMsg(msg);
+            break;
+        default:
+            throw("Unknown message type: " + msg.type);
+            break;
+    };
+
+    // We are done when we recieve 4 messages from the server
+    // Note this does not check they are unique messages
+    messagesRecieved += 1;
+    if (messagesRecieved == 4) {
+        done();
+    }
+}
+
 function sendCreateLobbyMessage(ws, playerID) {
     let msg = new Message(0, playerID, MessageType.CREATE_LOBBY);
+    ws.send(msg.toJSON());
+}
+
+function sendJoinLobbyMessage(ws, playerID, lobbyID) {
+    let msg = new Message(0, playerID, MessageType.PLAYER_JOIN, lobbyID);
     ws.send(msg.toJSON());
 }
 
