@@ -2,41 +2,17 @@
  * @fileoverview The game is in charge of handling the gameplay elements.
  */
 
+ const Message = require("../shared/Message.js");
+ const MessageType = require("../shared/MessageType.js");
+
 /**
  * @constructor
  * @param {int} whoseTurn Player id of whose turn it currently is
  */
  function Game(whoseTurn) {
     this.whoseTurn = whoseTurn;
-    this.sentences = []; // Array of words in the game
+    this.words = []; // Array of words in the game
     this.numSentences = 0; // How many sentences there are so far
-}
-
-/**
- * Incoming event handler. Passes events to other handlers based on msg.type
- * @param {Message} msg The incoming msg
- * @return {Message[]} List of messages to send back to clients
- */
-Game.prototype.websocketCallback = function(msg) {
-
-}
-
-/**
- * Recieves messages when a player enteres a word
- * @param {Message} msg The incoming msg
- * @return {Message[]} List of messages to send back to clients
- */
-Game.prototype.handleWordSent = function(msg) {
-
-}
-
-/**
- * Recieves messages when players leave the game
- * @param {Message} msg The incoming msg
- * @return {Message[]} List of messages to send back to clients
- */
-Game.prototype.handlePlayerLeave = function(msg) {
-
 }
 
 /**
@@ -54,6 +30,26 @@ Game.prototype.handleTurnTimeUp = function(msg) {
  */
 Game.prototype.isGameOver = function() {
 
+}
+
+
+/**
+ * Handles the word
+ * @return {Boolean}
+ */
+ Game.prototype.handleWord = function(msg) {
+   // if (msg.sourceID == this.whoseTurn) {
+        let word = msg.data["word"].trim();
+        this.words.push(word);
+        if (word.charAt(word.length - 1) == '!' || word.charAt(word.length - 1) == '.' || word.charAt(word.length - 1) == '?') {
+            this.nextTurn();
+        }
+        let wordMsg = new Message("all", "",  MessageType.WORD, this.lobbyID, {"word":word});
+        console.log("**********************************************************************" + wordMsg.data["word"]);
+        return [wordMsg];
+   // }
+    // TODO fix later
+    return [];
 }
 
 /**
@@ -76,3 +72,5 @@ Game.prototype.nextTurn = function() {
 Game.prototype.startTurnTimer = function() {
 
 }
+
+module.exports = Game;
