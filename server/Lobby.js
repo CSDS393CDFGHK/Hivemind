@@ -65,6 +65,9 @@ Lobby.prototype.handleMessage = function(msg) {
  * @return {Message[]} List of messages to send back to clients
  */
 Lobby.prototype.handleSettingsChange = function(msg) {
+    if(msg.sourceID !== this.ownerID) {
+        return [];
+    }
     let newSettings = new Settings(msg.data["turnTimeLimit"], msg.data["gameLength"]);
     this.settings = newSettings;
     let settingsMsg = new Message("all", "", MessageType.SETTINGS, this.lobbyID, newSettings.toDict());
