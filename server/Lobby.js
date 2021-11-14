@@ -25,7 +25,7 @@ const MAX_PLAYERS = 12;
     this.settings = new Settings(20, 8); // Game settings, initialized to defaults
     this.state = LobbyState.LOBBY; // All games start in the lobby
     this.ownerID = ownerID; // The ownerID of the lobby
-    this.cumulative_players = 0; // Used to give players unique "Player N" names
+    this.cumulative_players = 1; // Used to give players unique "Player N" names (start at player 1)
     this.game = null;
 }
 
