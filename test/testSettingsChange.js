@@ -90,6 +90,7 @@ describe("Change Settings", function() {
         });
 
         sendChangeSettingsMessage(ws2, player2ID, lobbyID, newSettings);
+        done();
     });
 
     // Close everything, otherwise mocha hangs
