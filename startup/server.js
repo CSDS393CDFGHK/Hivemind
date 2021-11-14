@@ -55,7 +55,14 @@ function onSocketAction(ws) {
 function onMessage(message, ws) {
 	// console.log("Received: " + message);
 	// console.log(sockets);
-	let msg = Message.fromJSON(message);
+
+	// Catch any malformed inputs
+	try {
+		msg = Message.fromJSON(message);
+	} catch (error) {
+		console.error("Error when parsing message `" + message +"`: " + error.message);
+		return;
+	}
 	// Create the lobby or find the lobby and send the message on
 	if (msg.type == MessageType.CREATE_LOBBY) {
 		let lobbyID = Utils.generateRandomString(8);
@@ -96,8 +103,10 @@ function onMessage(message, ws) {
 	}
 
 	// Send messages back to clients
-	for (i = 0; i < toClientMessages.length; i++) {
-		sendMessage(toClientMessages[i]);
+	if(toClientMessages) {
+        for (i = 0; i < toClientMessages.length; i++) {
+            sendMessage(toClientMessages[i]);
+        }
 	}
 }
 
