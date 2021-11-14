@@ -103,8 +103,10 @@ function onMessage(message, ws) {
 	}
 
 	// Send messages back to clients
-	for (i = 0; i < toClientMessages.length; i++) {
-		sendMessage(toClientMessages[i]);
+	if(toClientMessages) {
+        for (i = 0; i < toClientMessages.length; i++) {
+            sendMessage(toClientMessages[i]);
+        }
 	}
 }
 
