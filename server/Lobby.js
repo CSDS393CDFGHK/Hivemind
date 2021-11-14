@@ -6,9 +6,10 @@ const Settings = require("../shared/Settings.js");
 const LobbyState = require("../shared/LobbyState.js");
 const Player = require("../shared/Player.js");
 const Message = require("../shared/Message.js");
+const Utils = require("../shared/Utils.js");
 const MessageType = require("../shared/MessageType.js");
 const UniqueColorPicker = require("../server/UniqueColorPicker.js");
-const Utils = require("../shared/Utils.js");
+const Game = require("../server/Game.js");
 const MAX_PLAYERS = 12;
 
 /**
@@ -24,6 +25,7 @@ const MAX_PLAYERS = 12;
     this.settings = new Settings(20, 8); // Game settings, initialized to defaults
     this.state = LobbyState.LOBBY; // All games start in the lobby
     this.ownerID = ownerID; // The ownerID of the lobby
+    this.game = null;
 }
 
 /**
@@ -45,8 +47,8 @@ Lobby.prototype.handleMessage = function(msg) {
             return this.handlePlayerLeave(msg);
         case MessageType.WORD:
             return this.handleWord(msg);
-        case MessageType.PLAYER_DATA:
         case MessageType.NEXT_TURN:
+        case MessageType.PLAYER_DATA:
         case MessageType.LOBBY_STATE:
         case MessageType.CREATE_LOBBY:
             console.log('Recieved Bad Message Type: ' + msg.type);
@@ -63,6 +65,9 @@ Lobby.prototype.handleMessage = function(msg) {
  * @return {Message[]} List of messages to send back to clients
  */
 Lobby.prototype.handleSettingsChange = function(msg) {
+    if(msg.sourceID !== this.ownerID) {
+        return [];
+    }
     let newSettings = new Settings(msg.data["turnTimeLimit"], msg.data["gameLength"]);
     this.settings = newSettings;
     let settingsMsg = new Message("all", "", MessageType.SETTINGS, this.lobbyID, newSettings.toDict());
@@ -97,7 +102,7 @@ Lobby.prototype.handlePlayerJoin = function(msg) {
         // Sends player, lobby state, and settings data to the new player
         let informNewPlayerMsg = new Message(msg.sourceID, "", MessageType.PLAYER_DATA, this.lobbyID, this.toPlayerDataDict());
         let lobbyStateMsg = new Message(msg.sourceID, "", MessageType.LOBBY_STATE, this.lobbyID, this.state);
-        let settingsMsg = new Message(msg.sourceID, "", MessageType.SETTINGS, this.lobbyID, null/*Settings*/);
+        let settingsMsg = new Message(msg.sourceID, "", MessageType.SETTINGS, this.lobbyID, this.settings.toDict());
 
         return [playerJoinMsg, informNewPlayerMsg, lobbyStateMsg, settingsMsg];
     } else {
@@ -141,6 +146,19 @@ Lobby.prototype.handleReadyChange = function(msg) {
 }
 
 /**
+ * Recieves messages when players enter a word
+ * @param {Message} msg The incoming msg
+ * @return {Message[]} List of messages to send back to clients
+ */
+Lobby.prototype.handleWord = function(msg) {
+    if (this.game) {
+        return this.game.handleWord(msg);
+    }
+    // TODO Return invalid message
+    return [];
+}
+
+/**
  * Checks if the game is ready to start, which occurs if all players
  * in the lobby are ready, and there are enough players for a game.
  * @return {Boolean}
@@ -161,7 +179,11 @@ Lobby.prototype.gameShouldStart = function() {
  * Does required actions when starting the game. State goes from LOBBY -> GAME
  */
 Lobby.prototype.triggerGameStart = function() {
-    console.log("Trigger game start!!!!!!!!");
+    console.log("Trigger game start :)");
+    this.state = LobbyState.GAME;
+    this.game = new Game(this.ownerID);
+    let gameStartMsg = new Message("all", "", MessageType.LOBBY_STATE, this.lobbyID, {"state":this.state});
+    return gameStartMsg;
 }
 
 /**
