@@ -1,6 +1,7 @@
 const Server = require("../../startup/server.js");
 const Message = require("../../shared/Message.js");
 const MessageType = require("../../shared/MessageType.js");
+const LobbyState = require("../../shared/LobbyState.js");
 
 const http = require('http');
 const ws = require('ws');
@@ -14,7 +15,6 @@ let ws1 = new ws.WebSocket("ws://localhost:" + SERVER_PORT);
 let ws2 = new ws.WebSocket("ws://localhost:" + SERVER_PORT);
 let ws3 = new ws.WebSocket("ws://localhost:" + SERVER_PORT);
 let ws4 = new ws.WebSocket("ws://localhost:" + SERVER_PORT);
-let ws5 = null; // They join later
 
 // Client gets to choose playerID, but server makes lobbyID
 let player1ID = "player1";
@@ -63,62 +63,26 @@ async function runTheTest() {
     await sendJoinLobbyMessage(ws3, player3ID, lobbyID);
     await sendJoinLobbyMessage(ws4, player4ID, lobbyID);
 
-    // Step 3: Make all the players ready
-    console.log("Sending ready messages")
-    await sendReadyMessage(ws1, player1ID, lobbyID, true);
-    await sendReadyMessage(ws2, player2ID, lobbyID, true);
-    await sendReadyMessage(ws3, player3ID, lobbyID, true);
-    await sendReadyMessage(ws4, player4ID, lobbyID, true);
+    // Step 3: Send valid usernames
+    console.log("Sending username change messages")
+    await sendUsernameMessage(ws1, player1ID, lobbyID, "OrangePorcupine");
+    await sendUsernameMessage(ws2, player2ID, lobbyID, "RedTurtle");
+    await sendUsernameMessage(ws3, player3ID, lobbyID, "BlueGoose");
+    await sendUsernameMessage(ws4, player4ID, lobbyID, "AmberMantis");
 
-    // Step 4: Send words in order
-    console.log("Sending word messages")
-    await sendWordMessage(ws1, player1ID, lobbyID, "The");
-    await sendWordMessage(ws2, player2ID, lobbyID, "dog");
-    await sendWordMessage(ws3, player3ID, lobbyID, "said");
-    await sendWordMessage(ws4, player4ID, lobbyID, "hi");
-    await sendWordMessage(ws1, player1ID, lobbyID, "there");
-    await sendWordMessage(ws2, player2ID, lobbyID, "dude");
+    // Step 4: Send improper messages
+    console.log("Sending improper messages")
+    await sendNextTurnMessage(ws1, player1ID, lobbyID);
+    await sendPlayerDataMessage(ws2, player2ID, lobbyID, {"ownerID":player1ID, arr:[]});
+    await sendLobbyStateMessage(ws3, player3ID, lobbyID, LobbyState.GAME);
 
-    // Step 5 send words not in order
-    console.log("Sending bad order word messages")
-    await sendWordMessage(ws2, player2ID, lobbyID, "a");
-    await sendWordMessage(ws1, player1ID, lobbyID, "b");
-
-    // Step 6 send a word with a period (It is player 3's turn)
-    await sendWordMessage(ws3, player3ID, lobbyID, "yup.");
-
-    // Step 7: A player whose turn it isn't leaves
-    console.log("Player 3 leaving")
-    ws3.close(); await sleep(PAUSE_TIME);
-
-    // Step 8: more words
-    console.log("Sending more words")
-    await sendWordMessage(ws4, player4ID, lobbyID, "Then");
-    await sendWordMessage(ws1, player1ID, lobbyID, "he");
-
-    // Step 8: Player whose turn it is leaves
-    console.log("Player 2 leaving")
-    ws2.close(); await sleep(PAUSE_TIME);
-
-    // Step 9: It should now be next player's turn (player 4)
-    console.log("Sending more words")
-    await sendWordMessage(ws4, player4ID, lobbyID, "said");
-    await sendWordMessage(ws1, player1ID, lobbyID, "hello.");
-
-    // Step 10: A new player joins
-    console.log("New player joining")
-    ws5 = new ws.WebSocket("ws://localhost:" + SERVER_PORT); await sleep(PAUSE_TIME);
-    await sendJoinLobbyMessage(ws5, player5ID, lobbyID);
-
-    // Step 11: See if it becomes their turn after the other two
-    await sendWordMessage(ws4, player4ID, lobbyID, "The");
-    await sendWordMessage(ws5, player5ID, lobbyID, "end.");
-
-    // Close everything that is still open
-    // ws1.close(); await sleep(PAUSE_TIME);
-    // ws4.close(); await sleep(PAUSE_TIME);
-    // ws5.close(); await sleep(PAUSE_TIME);
-    // server.close(); await sleep(PAUSE_TIME);
+    // Close everything
+    // ws1.close();
+    // ws2.close();
+    // ws3.close();
+    // ws4.close();
+    // ws5.close();
+    // server.close();
 }
 
 async function sendCreateLobbyMessage(ws, playerID) {
@@ -133,14 +97,26 @@ async function sendJoinLobbyMessage(ws, playerID, lobbyID) {
     await sleep(PAUSE_TIME);
 }
 
-async function sendReadyMessage(ws, playerID, lobbyID, ready) {
-    let msg = new Message(0, playerID, MessageType.READY, lobbyID, {ready: ready});
+async function sendUsernameMessage(ws, playerID, lobbyID, username) {
+    let msg = new Message(0, playerID, MessageType.USERNAME, lobbyID, {"username": username});
     ws.send(msg.toJSON());
     await sleep(PAUSE_TIME);
 }
 
-async function sendWordMessage(ws, playerID, lobbyID, word) {
-    let msg = new Message(0, playerID, MessageType.WORD, lobbyID, {word: word});
+async function sendNextTurnMessage(ws, playerID, lobbyID) {
+    let msg = new Message(0, playerID, MessageType.NEXT_TURN, lobbyID);
+    ws.send(msg.toJSON());
+    await sleep(PAUSE_TIME);
+}
+
+async function sendPlayerDataMessage(ws, playerID, lobbyID, data) {
+    let msg = new Message(0, playerID, MessageType.USERNAME, lobbyID, data);
+    ws.send(msg.toJSON());
+    await sleep(PAUSE_TIME);
+}
+
+async function sendLobbyStateMessage(ws, playerID, lobbyID, state) {
+    let msg = new Message(0, playerID, MessageType.LOBBY_STATE, lobbyID, {"state": state});
     ws.send(msg.toJSON());
     await sleep(PAUSE_TIME);
 }
