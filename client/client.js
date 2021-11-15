@@ -291,6 +291,7 @@ function onChangeSettings(){
  * */ 
 function validUsername(word){
 	if(/^[\x00-\x7F]+$/.test(word)===false || /\s/g.test(word)==true) return false;
+	if(word.length > 20 || word.length < 1) return false;
 	else return true;
 }
 
