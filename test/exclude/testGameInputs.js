@@ -25,7 +25,7 @@ let player5ID = "player5";
 let lobbyID = "";
 
 // Delay between calls (ms)
-PAUSE_TIME = 5;
+PAUSE_TIME = 10;
 
 // Debugs for non ws1
 ws2.on('open', function open() {console.log("ws2 connected");});
@@ -115,10 +115,10 @@ async function runTheTest() {
     await sendWordMessage(ws5, player5ID, lobbyID, "end.");
 
     // Close everything that is still open
-    // ws1.close(); await sleep(PAUSE_TIME);
-    // ws4.close(); await sleep(PAUSE_TIME);
-    // ws5.close(); await sleep(PAUSE_TIME);
-    // server.close(); await sleep(PAUSE_TIME);
+    ws1.close(); await sleep(PAUSE_TIME);
+    ws4.close(); await sleep(PAUSE_TIME);
+    ws5.close(); await sleep(PAUSE_TIME);
+    server.close(); await sleep(PAUSE_TIME);
 }
 
 async function sendCreateLobbyMessage(ws, playerID) {
