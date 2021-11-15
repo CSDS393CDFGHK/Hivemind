@@ -1,5 +1,6 @@
 import { exportedForTesting } from "../client/client.js";
 
+var expect = chai.expect;
 
 describe('client', function() {
   
