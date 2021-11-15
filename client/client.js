@@ -261,6 +261,10 @@ function onUsernameTyped(){
 		let msg = new Message(0, ID, MessageType.USERNAME, lobbyID, {'username':attemptedUsername} );
 		socket.send(msg.toJSON());
 	}
+	else {
+		alert("Please type in a username with 1-20 ASCII characters and no spaces!")
+		document.getElementById('username').value = '';
+	}
 }
 
 function onJoinFromLink(urlSuffix) {
