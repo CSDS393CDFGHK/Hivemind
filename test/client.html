@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Mocha Tests</title>
+  </head>
+  <body>
+	<div class="lobby" id="lobby"></div>
+	<div class="ready" id="ready"></div>
+	<div class="player0" id="player0"></div>
+	<div class="lobbyLink" id="lobbyLink"></div>
+	<div class="CreateLobby" id="CreateLobby"></div>
+	<div class="readyButton" id="readyButton"></div>
+	<div class="submitButton" id="submitButton"></div>
+
+
+
+    <div id="mocha"></div>
+    <script src="../node_modules/mocha/mocha.js"></script>
+	<script src="../node_modules/chai/chai.js"></script>
+
+    <script>mocha.setup('bdd')</script>
+	<script type="module" src="../shared/Utils.js"></script>
+	<script type="module" src="../shared/Message.js"></script>
+	<script type="module" src="../shared/MessageType.js"></script>
+	<script type="module" src="../client/client.js"></script>
+
+    <!-- load your test files here -->
+	<script type="module" src="client.js"></script>
+
+
+    <script type="module">
+      mocha.run();
+    </script>
+  </body>
+</html>
