@@ -283,6 +283,10 @@ function onUsernameTyped(){
 		let msg = new Message(0, ID, MessageType.USERNAME, lobbyID, {'username':attemptedUsername} );
 		socket.send(msg.toJSON());
 	}
+	else {
+		alert("Please type in a username with 1-20 ASCII characters and no spaces!")
+		document.getElementById('username').value = '';
+	}
 }
 
 function onJoinFromLink(urlSuffix) {
@@ -313,7 +317,42 @@ function onChangeSettings(){
  * */ 
 function validUsername(word){
 	if(/^[\x00-\x7F]+$/.test(word)===false || /\s/g.test(word)==true) return false;
+	if(word.length > 20 || word.length < 1) return false;
 	else return true;
 }
 
 initialize();
+
+/*
+Can't test with mocha normally bc  you can't use
+ non-ES6 functions (i.e. require) with vanilla JS. Can't access functions 
+ functions from other files with either an export or the use of the 
+ rewire library, which apparently can cause problems with mocha, 
+ so according to some dude stack overflow, this is the best way to do things.
+ IDK tbh 
+*/
+export const exportedForTesting = {
+	initialize, 
+	onOpen,
+	onClose,
+	websocketCallback,
+	onJoinMessage,
+	onPlayerDataMessage,
+	onUsernameMessage,
+	onPlayerDataMessage,
+	onLobbyStateMessage,
+	onSettingsMessage,
+	onReadyMessage,
+	initializePlayersInLobby,
+	removePlayerDiv,
+	removePlayerDivs,
+	addPlayerDivs,
+	createPlayerDiv,
+	handleGameStart,
+	onCreateLobby,
+	onUsernameTyped,
+	onJoinFromLink,
+	onReadyStatusChange,
+	onChangeSettings,
+	validUsername
+}
