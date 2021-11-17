@@ -40,12 +40,19 @@ function initialize() {
 	lobbyLink.style.display = 'none';
 	var readyButton = document.getElementById('readyButton');
 	var submitButton = document.getElementById('submitButton');
+	var settingsButton = document.getElementById('settingsButton');
+	settingsButton.style.display = 'none';
+	var changeSettings = document.getElementById('changeSettings');
+	changeSettings.style.display = 'none';
+	var settingsSubmitButton = document.getElementById('settingsSubmitButton');
+
 
 	//give buttons functionality
 	createLobby.onclick = onCreateLobby;
 	readyButton.onclick = onReadyStatusChange;
 	submitButton.onclick = onUsernameTyped;
-
+	settingsButton.onclick = showSettings;
+	settingsSubmitButton.onclick = onChangeSettings;
 }
 
 /**
@@ -269,8 +276,16 @@ function handleGameStart(){
 	
 }
 
+/**  Called when the change settings button is clicked. Shows the settings form. */
+function showSettings(){
+	document.getElementById('settingsInfo').style.display = 'none';
+	settingsButton.style.display = 'none';
+	changeSettings.style.display = 'block';
+}
+
 /**  Sends a CreateLobby message to the server */
 function onCreateLobby(){
+	settingsButton.style.display = 'block';
 	let msg = new Message(0, ID, MessageType.CREATE_LOBBY, 1, 'N/A');
 	socket.send(msg.toJSON());
 }
@@ -308,6 +323,15 @@ function onReadyStatusChange(){
 /** Called when the player changes the settings. Sends a message to the server containing information about the settings.
  * */
 function onChangeSettings(){
+	document.getElementById('settingsInfo').style.display = 'block';
+	settingsButton.style.display = 'block';
+	changeSettings.style.display = 'none';
+	let turnTimeLimit = document.getElementById('timeLimit').value;
+	let gameLength = document.getElementById('sentenceLimit').value;
+	document.getElementById('numSentencesDisplay').textContent = 'Number of Sentences: ' + turnTimeLimit;
+	document.getElementById('turnTimeLimitDisplay').textContent = 'Turn Time Limit: ' + gameLength + ' seconds';
+	let msg = new Message(0, ID, MessageType.SETTINGS, lobbyID, {'turnTimeLimit':turnTimeLimit, 'gameLength':sentenceLimit});
+	socket.send(msg.toJSON());
 }
 
 /**
