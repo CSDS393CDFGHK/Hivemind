@@ -18,7 +18,7 @@ function Settings(turnTimeLimit, gameLength) {
  */
 Settings.prototype.toJSON = function() {
     // If you pass the object itself with "this", it will stringify the function names which we don't want
-    properties = {
+    let properties = {
         turnTimeLimit: this.turnTimeLimit,
         gameLength: this.gameLength,
     }
@@ -26,7 +26,7 @@ Settings.prototype.toJSON = function() {
 }
 
 Settings.prototype.toDict = function() {
-    properties = {
+    let properties = {
         turnTimeLimit: this.turnTimeLimit,
         gameLength: this.gameLength
     }
@@ -40,7 +40,7 @@ Settings.prototype.toDict = function() {
  */
 Settings.fromJSON = function(json) {
     // Need to transfer bare data to an actual object
-    data = JSON.parse(json);
+    let data = JSON.parse(json);
     return new Settings(data.turnTimeLimit, data.gameLength);
 }
 

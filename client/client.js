@@ -100,6 +100,9 @@ function onClose(socket){
 		case MessageType.USERNAME:
 			onUsernameMessage(message);
 			break;
+		case MessageType.LOBBY_STATE:
+			onLobbyStateMessage(message);
+			break;
 		case MessageType.SETTINGS:
 			onSettingsMessage(message);
 			break;
@@ -148,11 +151,13 @@ function onPlayerLeaveMessage(message) {
 }
 
 function onLobbyStateMessage(message) {
-
 }
 
 function onSettingsMessage(message) {
-	let numSentences = document.getElementById('numSentences');
+	let turnTimeLimit = message.data['turnTimeLimit'];
+	let gameLength = message.data['gameLength'];
+	document.getElementById('numSentencesDisplay').textContent = 'Number of Sentences: ' + turnTimeLimit;
+	document.getElementById('turnTimeLimitDisplay').textContent = 'Turn Time Limit: ' + gameLength + ' seconds';
 }
 
 function onReadyMessage(message) {
@@ -330,7 +335,7 @@ function onChangeSettings(){
 	let gameLength = document.getElementById('sentenceLimit').value;
 	document.getElementById('numSentencesDisplay').textContent = 'Number of Sentences: ' + turnTimeLimit;
 	document.getElementById('turnTimeLimitDisplay').textContent = 'Turn Time Limit: ' + gameLength + ' seconds';
-	let msg = new Message(0, ID, MessageType.SETTINGS, lobbyID, {'turnTimeLimit':turnTimeLimit, 'gameLength':sentenceLimit});
+	let msg = new Message(0, ID, MessageType.SETTINGS, lobbyID, {'turnTimeLimit':turnTimeLimit, 'gameLength':gameLength});
 	socket.send(msg.toJSON());
 }
 
