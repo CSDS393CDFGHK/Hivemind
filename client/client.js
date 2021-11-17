@@ -50,7 +50,7 @@ function initialize() {
 	createLobby.onclick = onCreateLobby;
 	readyButton.onclick = onReadyStatusChange;
 	submitButton.onclick = onUsernameTyped;
-	settingsButton.onclick = showSettings;
+	settingsButton.onclick = allowSettingsChange;
 	settingsSubmitButton.onclick = onChangeSettings;
 }
 
@@ -135,6 +135,11 @@ function onUsernameMessage(message) {
 }
 
 function onPlayerLeaveMessage(message) {
+	console.log('made it here');
+	if(message.data.ownerID==ID){
+		changeSettings.style.display = 'block';
+		console.log('made it inside if');
+	}
 	removePlayerDiv(message.data.id);
 }
 
@@ -168,7 +173,7 @@ function initializePlayersInLobby(lobbyData) {
 
 /**
  * Remove all divs currently in the lobby
- * @param {numPlayers} the number divs to possibly remove
+ * @param {numPlayers}  number of divs to possibly remove
  */
 function removePlayerDivs(numPlayers) {
 	//set OG div to invisible, delete rest of them
@@ -254,8 +259,8 @@ function handleGameStart(){
 	
 }
 
-/**  Called when the change settings button is clicked. Shows the settings form. */
-function showSettings(){
+/**  Called when the change settings button is clicked. Shows the changeable settings. */
+function allowSettingsChange(){
 	document.getElementById('settingsInfo').style.display = 'none';
 	settingsButton.style.display = 'none';
 	changeSettings.style.display = 'block';
@@ -294,16 +299,19 @@ function onReadyStatusChange(){
 	socket.send(msg.toJSON());
 }
 
-/** Called when the player changes the settings. Sends a message to the server containing information about the settings.
+/** Called when the player submits the changed settings. Sends a message to the server containing information about the settings.
  * */
 function onChangeSettings(){
+	// display settings info
 	document.getElementById('settingsInfo').style.display = 'block';
 	settingsButton.style.display = 'block';
 	changeSettings.style.display = 'none';
+	// get values of inputs
 	let turnTimeLimit = document.getElementById('timeLimit').value;
 	let gameLength = document.getElementById('sentenceLimit').value;
 	document.getElementById('numSentencesDisplay').textContent = 'Number of Sentences: ' + turnTimeLimit;
 	document.getElementById('turnTimeLimitDisplay').textContent = 'Turn Time Limit: ' + gameLength + ' seconds';
+	// inform the server of the changes
 	let msg = new Message(0, ID, MessageType.SETTINGS, lobbyID, {'turnTimeLimit':turnTimeLimit, 'gameLength':gameLength});
 	socket.send(msg.toJSON());
 }
