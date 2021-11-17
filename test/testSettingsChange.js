@@ -21,8 +21,8 @@ describe("Change Settings", function() {
         ws1 = new ws.WebSocket("ws://localhost:" + SERVER_PORT);
         ws2 = new ws.WebSocket("ws://localhost:" + SERVER_PORT);
 
-        // Count messages recieved. Hacky ish way to tell when we are done
-        messagesRecieved = 0;
+        // Count messages received. Hacky ish way to tell when we are done
+        messagesReceived = 0;
 
         // Client gets to choose playerID
         player1ID = "player1";
@@ -40,8 +40,8 @@ describe("Change Settings", function() {
 
         ws1.on('message', function message(message) {
             lobbyID = Message.fromJSON(message).lobbyID;
-            messagesRecieved += 1;
-            if (messagesRecieved == 4) {
+            messagesReceived += 1;
+            if (messagesReceived == 4) {
                 done(); // Ensure lobby is created before next test runs
             }
         });
@@ -53,23 +53,23 @@ describe("Change Settings", function() {
 
     it('Player 1 will change settings', function(done) {
         newSettings = new Settings(12, 6);
-        let messagesRecieved = 0;
+        let messagesReceived = 0;
 
-        // Check settings change recieved by all players
+        // Check settings change Received by all players
         ws1.on('message', function message(message) {
-            messagesRecieved += 1;
+            messagesReceived += 1;
             msg = Message.fromJSON(message);
             checkSettingsMsg(msg, newSettings);
-            if (messagesRecieved == 2) {
+            if (messagesReceived == 2) {
                 done()
             };
         });
 
         ws2.on('message', function message(message) {
-            messagesRecieved += 1;
+            messagesReceived += 1;
             msg = Message.fromJSON(message);
             checkSettingsMsg(msg, newSettings);
-            if (messagesRecieved == 2) {
+            if (messagesReceived == 2) {
                 done()
             };
         });
