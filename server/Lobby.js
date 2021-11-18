@@ -124,8 +124,10 @@ Lobby.prototype.handlePlayerLeave = function(msg) {
     let p = this.getPlayer(msg.sourceID);
     index = this.players.indexOf(p);
     this.players.splice(index, 1); // Splice to remove 1 element from array at the player's index
-    if (this.game && this.game.whoseTurn < this.players.index && this.game.whoseTurn > 0) {
+    if (this.game && this.game.whoseTurn > index && this.game.whoseTurn > 0) {
         this.game.whoseTurn--;
+    } else if (this.game && index == this.players.length) {
+        this.game.whoseTurn = 0;
     }
     
     if (p.id == this.ownerID && this.players.length > 0) {

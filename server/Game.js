@@ -40,6 +40,7 @@ Game.prototype.isGameOver = function() {
  * @return {Boolean}
  */
  Game.prototype.handleWord = function(msg) {
+    console.log("Current index: " + this.whoseTurn);
    if (msg.sourceID == this.lobby.players[this.whoseTurn].id) {
         let word = msg.data["word"].trim();
         this.words.push(word);
@@ -48,7 +49,7 @@ Game.prototype.isGameOver = function() {
         console.log("Player " + this.lobby.players[this.whoseTurn].id + " says: " + wordMsg.data["word"]);
         // If a sentence has ended
         if (word.charAt(word.length - 1) == '!' || word.charAt(word.length - 1) == '.' || word.charAt(word.length - 1) == '?') {
-            
+
         }
         turnMsg = this.nextTurn();
         return [wordMsg, turnMsg];
