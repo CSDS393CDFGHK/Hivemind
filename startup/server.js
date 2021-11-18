@@ -136,6 +136,7 @@ function getLobby(id) {
 function sendMessage(msg) {
 	// If the lobby has been deleted or msg has an invalid lobbyID
 	if (!(msg.lobbyID in sockets)) {
+		console.log("LobbyID not found: " + msg.lobbyID);
 		return;
 	}
 

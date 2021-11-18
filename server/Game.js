@@ -4,15 +4,17 @@
 
  const Message = require("../shared/Message.js");
  const MessageType = require("../shared/MessageType.js");
+ const Lobby = require("../server/Lobby.js");
 
 /**
  * @constructor
- * @param {int} whoseTurn Player id of whose turn it currently is
+ * @param {Lobby} lobby The associated lobby for this game
  */
- function Game(whoseTurn) {
-    this.whoseTurn = whoseTurn;
+ function Game(lobby) {
+    this.whoseTurn = 0;
     this.words = []; // Array of words in the game
     this.numSentences = 0; // How many sentences there are so far
+    this.lobby = lobby;
 }
 
 /**
@@ -38,16 +40,19 @@ Game.prototype.isGameOver = function() {
  * @return {Boolean}
  */
  Game.prototype.handleWord = function(msg) {
-   // if (msg.sourceID == this.whoseTurn) {
+   if (msg.sourceID == this.lobby.players[this.whoseTurn].id) {
         let word = msg.data["word"].trim();
         this.words.push(word);
+        let turnMsg = new Message("all", "", MessageType.NEXT_TURN, this.lobby.lobbyID, {"player": this.lobby.players[this.whoseTurn]});
+        let wordMsg = new Message("all", "",  MessageType.WORD, this.lobby.lobbyID, {"word":word});
+        console.log("Player " + this.lobby.players[this.whoseTurn].id + " says: " + wordMsg.data["word"]);
+        // If a sentence has ended
         if (word.charAt(word.length - 1) == '!' || word.charAt(word.length - 1) == '.' || word.charAt(word.length - 1) == '?') {
-            this.nextTurn();
+            
         }
-        let wordMsg = new Message("all", "",  MessageType.WORD, this.lobbyID, {"word":word});
-        console.log("**********************************************************************" + wordMsg.data["word"]);
-        return [wordMsg];
-   // }
+        turnMsg = this.nextTurn();
+        return [wordMsg, turnMsg];
+   }
     // TODO fix later
     return [];
 }
@@ -63,7 +68,8 @@ Game.prototype.triggerGameEnd = function() {
  * Does required actions when moving to the next player's turn
  */
 Game.prototype.nextTurn = function() {
-
+    this.whoseTurn = (this.whoseTurn + 1) % this.lobby.players.length;
+    return new Message("all", "", MessageType.NEXT_TURN, this.lobby.lobbyID, {"player": this.lobby.players[this.whoseTurn]});
 }
 
 /**
