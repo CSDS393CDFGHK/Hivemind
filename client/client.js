@@ -2,6 +2,7 @@
 /**
  * @fileoverview Client.js handles client-side sockets and events.
  */
+
 //constants used in all functions
 const SERVER_WS_LOCATION = 'ws://3.144.98.109/Hivemind/startup/'; //not permanent, but where it's located now
 const socket = new WebSocket(SERVER_WS_LOCATION);
@@ -10,6 +11,8 @@ let lobbyID = null;
 let nextDivNum = 1; //The next certainly valid number we can use for a div
 let readyStatus = false;
 let lobbyLink = null;
+//player_join can come before player_data, which can cause formatting inconsistency. This blocks that from occuring.
+let playerDataReceived = false; 
 
 //Enum to describe current page state: Not used yet, but will be
 const PageState = {
@@ -71,7 +74,12 @@ function onOpen(socket) {
  * @param {Socket} socket The socket that is being closed
  */
 function onClose(socket){
-	; //for now, don't do anything on close
+	/*
+	 *TODO: If a websocket connection is closed due to idling (ex: leaving the app on mobile), then the socket connection closes.
+	 * The client's screen is stil just the lobby, with no indication that there's an issue. Probably should make 
+	 * some HTML page when an error has occurred saying "disconnected from server. Please refresh to continue" or 
+	 * something else of that effect.
+	 */
 }
 
 /**
@@ -83,7 +91,7 @@ function onClose(socket){
 	console.log(message);
 	switch (message.type) {
 		case MessageType.PLAYER_JOIN:
-			onJoinMessage(message);
+			onPlayerJoinMessage(message);
 			break;
 		case MessageType.PLAYER_DATA:
 			onPlayerDataMessage(message);
@@ -94,6 +102,15 @@ function onClose(socket){
 		case MessageType.USERNAME:
 			onUsernameMessage(message);
 			break;
+		case MessageType.LOBBY_STATE:
+			onLobbyStateMessage(message);
+			break;
+		case MessageType.SETTINGS:
+			onSettingsMessage(message);
+			break;
+		case MessageType.READY:
+			onReadyMessage(message);
+			break;
 		default:
 			console.log('Messages of type ' + message.type + ' have not been configured yet.');
 			break;
@@ -101,25 +118,38 @@ function onClose(socket){
 	}
 }
 
-function onJoinMessage(message){
+/**
+ * Handle player join messages.
+ * @param {Message} message The incoming msg
+ */
+function onPlayerJoinMessage(message){
 	lobbyID = message.lobbyID;
 	if(lobbyID!=null && lobbyLink.style.display==='none'){
 		lobbyLink.style.display = 'block';
 		lobbyLink.textContent += '?' + lobbyID;
 	}
-	if (message.data != null && message.data.username != null) {
+	if (message.data != null && message.data.username != null && playerDataReceived) {
 		createPlayerDiv(message.data, nextDivNum);
 	}
 }
 
+/**
+ * Handle player data messages.
+ * @param {Message} message The incoming msg
+ */
 function onPlayerDataMessage(message) {
     var landing = document.getElementById('landing');
     landing.style.display = 'none';
     lobby.style.display = 'block';
     ready.style.display = 'block';
     initializePlayersInLobby(message.data);
+	playerDataReceived = true;
 }
 
+/**
+ * Handle player data messages.
+ * @param {Message} message The incoming msg
+ */
 function onUsernameMessage(message) {
 	let found = false;
 	let playerid = message.data.id;
@@ -134,50 +164,78 @@ function onUsernameMessage(message) {
 	}
 }
 
+/**
+ * Handle player leave messages.
+ * @param {Message} message The incoming msg
+ */
 function onPlayerLeaveMessage(message) {
-	console.log('made it here');
-	if(message.data.ownerID==ID){
-		changeSettings.style.display = 'block';
-		console.log('made it inside if');
-	}
-	removePlayerDiv(message.data.id);
+	if(message.data.ownerID==ID) {
+		settingsButton.style.display = 'block';	}
+	removePlayerDiv(message.data.id, message.data.ownerID);
 }
 
+/**
+ * Handle Lobby State messages.
+ * @param {Message} message The incoming msg
+ */
 function onLobbyStateMessage(message) {
-
+	
 }
 
+/**
+ * Handle Settings messages.
+ * @param {Message} message The incoming msg
+ */
 function onSettingsMessage(message) {
-
+	let turnTimeLimit = message.data['turnTimeLimit'];
+	let gameLength = message.data['gameLength'];
+	document.getElementById('numSentencesDisplay').textContent = 'Number of Sentences: ' + gameLength;
+	document.getElementById('turnTimeLimitDisplay').textContent = 'Turn Time Limit: ' + turnTimeLimit + ' seconds';
 }
 
+/**
+ * Handle Ready messages.
+ * @param {Message} message The incoming msg
+ */
 function onReadyMessage(message) {
+	var found = false;
+	let playerid = message.data['id'];
+	let r = message.data['ready'];
+	for (let i = 1; i <= nextDivNum && !found; i++) {
+		let div = document.getElementById('player' + i);
+		if (div != null && div.getElementsByClassName('p_id')[0].textContent == playerid) {
 
+			//if now ready and not being displayed, display check
+			if (r && div.getElementsByClassName('check')[0].innerHTML.length == 0) 
+				div.getElementsByClassName('check')[0].innerHTML = '<span>&#10003;</span>'
+			
+			//if not ready and check currently being displayed, remove it
+			else if (!r && div.getElementsByClassName('check')[0].innerHTML.length > 0)
+			div.getElementsByClassName('check')[0].innerHTML = ''
+
+		}
+
+	}
 }
 
 /**
  * Update the players in lobby based on the number of active connections.
- * Update by removing all, and then adding all back
- * @param {Message} msg The incoming msg
+ * Update by removing all, and then adding all back.
+ * @param {LobbyData} lobbyData incoming msg
  */
 function initializePlayersInLobby(lobbyData) {
 	if (lobbyData.players != null) { 
 		let players = lobbyData.players;
-		//by default a single player div is there at the top left with my username
-		//remove it and readd in proper place so formatting is consistent will all other players in lobby
-		removePlayerDivs(players.length); 
-		addPlayerDivs(players, players.length);
+		let ownerID = lobbyData.ownerID;
+		addPlayerDivs(players, players.length, ownerID);
 	}
-
 }
 
 /**
- * Remove all divs currently in the lobby
- * @param {numPlayers}  number of divs to possibly remove
+ * Remove all divs currently in the lobby.
+ * @param {int} numPlayers of divs to possibly remove
  */
 function removePlayerDivs(numPlayers) {
-	//set OG div to invisible, delete rest of them
-	document.getElementById('player0').style.display = 'none';
 	for (let i = 1; i <= numPlayers; i++) {
 		if (document.getElementById('player' + i) !== null)
 			document.getElementById('player' + i).remove();
@@ -185,70 +243,73 @@ function removePlayerDivs(numPlayers) {
 }
 
 /**
- * Remove the div corresponding to a specific player
- * @param {playerid} the ID of the player to remove
+ * Remove the div corresponding to a specific player.
+ * @param {int} playerid the ID of the player to remove
+ * @param {int} ownerID the ID of this lobby's owner
  */
-function removePlayerDiv(playerid) {
-	var removed = false;
-	//If it's player0 we're trying to remove, set it to invisible 
-	if (document.getElementById('player0').getElementsByClassName('p_id')[0].textContent == playerid) {
-		document.getElementById('player0').style.display = 'none';
-	}
+function removePlayerDiv(playerid, ownerID) {
+	let found = false
 	//if other players have left, nextDivNum != numPlayers, so iterate over all possible
-	for (let i = 1; i <=  nextDivNum && !removed; i++) {
+	//In case owner left, look for new owner, assign their color appropriately
+	for (let i = 1; i <=  nextDivNum && !found; i++) {
 		let div = document.getElementById('player' + i);
-		if (div != null) {
-			console.log(div.getElementsByClassName('p_id')[0].textContent);
-		}
 		if (div != null && div.getElementsByClassName('p_id')[0].textContent == playerid) {
 			div.remove();
 		}
+		if (div != null && div.getElementsByClassName('p_id')[0].textContent == ownerID)
+			div.getElementsByClassName('container')[0].style.backgroundColor = '#F1E5AC';
 	}
 }
 
 /**
- * Adds all the divs based on the players list
- * @param {players} the list of players to add
- * @param {numPlayers} the number of players in the list
+ * Adds all the divs based on the players list.
+ * @param {Player} players the list of players to add
+ * @param {int} ownerID the ID of this lobby's owner
+ * @param {int} numPlayers number of players in the list
  */
-function addPlayerDivs(players, numPlayers) {
+function addPlayerDivs(players, numPlayers, ownerID) {
 	//(i - 1) = id of last player div displayed (i.e. when i == 0, no player divs have been displayed)
 	for (let i = 0; i < numPlayers; i++) {
-		if (i == 0) {
-			//expose the player0 div, edit the player info 
-			document.getElementById('player0').style.display = 'block';
-			document.getElementById('player0').style.gridColumnStart = "5";
-			document.getElementById('player0').getElementsByClassName('name')[0].textContent = players[i].username//get the correct div, name field within div;;
-			document.getElementById('player0').getElementsByClassName('p_id')[0].textContent = players[i].id;
-			document.getElementById('player0').getElementsByClassName('dot')[0].style.backgroundColor = players[i].color
-		}
-		else {
-			//create div for new player 
-			createPlayerDiv(players[i], i);
-		}
+		createPlayerDiv(players[i], i + 1, ownerID);
 	}
 	//possibly update the div num
 	nextDivNum = nextDivNum < numPlayers ? numPlayers : nextDivNum;
 }
 
 /**
- * Create a single player div * @param {player} the information of the player whose div we want to create
- * @param {divNum} the identifier used on the frontend to create identifiable, iterable divs
+ * Create a single player div
+ * @param {int} divNum identifier used on the frontend to create identifiable, iterable divs
+ * @param {Player} player data of the player to add
+ * @param {int} ownerID ID of this lobby's owner
  */
-function createPlayerDiv(player, divNum) {
-	var original = document.getElementById('player' + 0);
+function createPlayerDiv(player, divNum, ownerID) {
+	var original = document.getElementById('player0');
 
 	//copy the div, change its ID, append it 
 	var clone = original.cloneNode(true);
 	clone.id = "player" + (divNum); 
 	original.parentNode.appendChild(clone);
-
+	let cloneDiv = document.getElementById(clone.id)
+	
 	//get the 'name' field, change it to be this player's id
-	document.getElementById(clone.id).getElementsByClassName('name')[0].textContent = player.username;
-	document.getElementById(clone.id).getElementsByClassName('p_id')[0].textContent = player.id;
-	document.getElementById(clone.id).getElementsByClassName('dot')[0].style.backgroundColor = player.color;
+	cloneDiv.style.display = 'block'; //player0 may be inivisible, make sure it can be seen
+	cloneDiv.getElementsByClassName('name')[0].textContent = player.username;
+	cloneDiv.getElementsByClassName('p_id')[0].textContent = player.id;
+	cloneDiv.getElementsByClassName('dot')[0].style.backgroundColor = player.color;
+
+	if (player.id == ID) { 
+		cloneDiv.getElementsByClassName('you')[0].style.display = 'block';
+	}
+
+	if (player.id == ownerID) {
+		cloneDiv.getElementsByClassName('container')[0].style.backgroundColor = '#F1E5AC';
+	}
+	else {
+		cloneDiv.getElementsByClassName('container')[0].style.backgroundColor = '#FFFFFF';
+	}
+
 	if ((divNum) % 3 != 0) {
-		document.getElementById(clone.id).style.gridColumnStart = "auto";
+		cloneDiv.style.gridColumnStart = "auto";
 	}
 	nextDivNum++;
 }
@@ -281,8 +342,16 @@ function onUsernameTyped(){
 		let msg = new Message(0, ID, MessageType.USERNAME, lobbyID, {'username':attemptedUsername} );
 		socket.send(msg.toJSON());
 	}
+	else {
+		alert("Please type in a username with 1-20 ASCII characters and no spaces!")
+		document.getElementById('username').value = '';
+	}
 }
 
+/**
+ * Called when a link was used to join the game.
+ * @param {String} urlSuffix The last part of the URL (ex: http://3.144.98.109/?HK1z24J3 -> HK1z24J3)
+ */
 function onJoinFromLink(urlSuffix) {
 	lobbyID = urlSuffix;
 	if (lobbyID != null) {
@@ -291,16 +360,18 @@ function onJoinFromLink(urlSuffix) {
 	}
 }
 
-/**  Called when the player changes their ready status. Sends a msg to the server.
- * */
+/**  
+ * Called when the player changes their ready status. Sends a msg to the server.
+ */
 function onReadyStatusChange(){
 	readyStatus = !readyStatus; //flip ready status
 	let msg = new Message(0, ID, MessageType.READY, lobbyID, {'ready':readyStatus});
 	socket.send(msg.toJSON());
 }
 
-/** Called when the player submits the changed settings. Sends a message to the server containing information about the settings.
- * */
+/** 
+ * Called when the player submits the changed settings. Sends a message to the server containing information about the settings.
+ */
 function onChangeSettings(){
 	// display settings info
 	document.getElementById('settingsInfo').style.display = 'block';
@@ -323,7 +394,43 @@ function onChangeSettings(){
  * */ 
 function validUsername(word){
 	if(/^[\x00-\x7F]+$/.test(word)===false || /\s/g.test(word)==true) return false;
+	if(word.length > 20 || word.length < 1) return false;
 	else return true;
 }
 
 initialize();
+
+
+/*
+Can't test with mocha normally bc you can't use
+ non-ES6 functions (i.e. require) with vanilla JS. Can't access functions 
+ functions from other files with either an export or the use of the 
+ rewire library, which apparently can cause problems with mocha, 
+ so according to some dude stack overflow, this is the best way to do things.
+ IDK tbh 
+*/
+export const exportedForTesting = {
+	initialize, 
+	onOpen,
+	onClose,
+	websocketCallback,
+	onPlayerJoinMessage,
+	onPlayerDataMessage,
+	onUsernameMessage,
+	onPlayerDataMessage,
+	onLobbyStateMessage,
+	onSettingsMessage,
+	onReadyMessage,
+	initializePlayersInLobby,
+	removePlayerDiv,
+	removePlayerDivs,
+	addPlayerDivs,
+	createPlayerDiv,
+	handleGameStart,
+	onCreateLobby,
+	onUsernameTyped,
+	onJoinFromLink,
+	onReadyStatusChange,
+	onChangeSettings,
+	validUsername
+}
