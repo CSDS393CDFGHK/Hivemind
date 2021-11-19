@@ -158,7 +158,7 @@ function onPlayerLeaveMessage(message) {
 		changeSettings.style.display = 'block';
 		console.log('made it inside if');
 	}
-	removePlayerDiv(message.data.id);
+	removePlayerDiv(message.data.id, message.data.ownerID);
 }
 
 function onLobbyStateMessage(message) {
@@ -196,17 +196,14 @@ function onReadyMessage(message) {
 /**
  * Update the players in lobby based on the number of active connections.
  * Update by removing all, and then adding all back
- * @param {Message} msg The incoming msg
+ * @param {lobbyData} The incoming msg
  */
 function initializePlayersInLobby(lobbyData) {
 	if (lobbyData.players != null) { 
 		let players = lobbyData.players;
 		let ownerID = lobbyData.ownerID;
-		//by default a single player div is there at the top left with my username
-		//remove it and readd in proper place so formatting is consistent will all other players in lobby
 		addPlayerDivs(players, players.length, ownerID);
 	}
-
 }
 
 /**
@@ -225,6 +222,7 @@ function removePlayerDivs(numPlayers) {
 /**
  * Remove the div corresponding to a specific player
  * @param {playerid} the ID of the player to remove
+ * @param {ownerID} the ID of this lobby's owner
  */
 function removePlayerDiv(playerid, ownerID) {
 	let found = false
@@ -243,6 +241,7 @@ function removePlayerDiv(playerid, ownerID) {
 /**
  * Adds all the divs based on the players list
  * @param {players} the list of players to add
+ * @param {ownerID} the ID of this lobby's owner
  * @param {numPlayers} the number of players in the list
  */
 function addPlayerDivs(players, numPlayers, ownerID) {
@@ -257,6 +256,8 @@ function addPlayerDivs(players, numPlayers, ownerID) {
 /**
  * Create a single player div * @param {player} the information of the player whose div we want to create
  * @param {divNum} the identifier used on the frontend to create identifiable, iterable divs
+ * @param {player} the data of the player to add
+ * @param {ownerID} the ID of this lobby's owner
  */
 function createPlayerDiv(player, divNum, ownerID) {
 	var original = document.getElementById('player0');
@@ -369,6 +370,7 @@ function validUsername(word){
 }
 
 initialize();
+
 
 /*
 Can't test with mocha normally bc  you can't use
