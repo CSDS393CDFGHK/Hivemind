@@ -11,6 +11,8 @@ let lobbyID = null;
 let nextDivNum = 1; //The next certainly valid number we can use for a div
 let readyStatus = false;
 let lobbyLink = null;
+//player_join can come before player_data, which can cause formatting inconsistency. This blocks that from occuring.
+let playerDataReceived = false; 
 
 //Enum to describe current page state: Not used yet, but will be
 const PageState = {
@@ -89,7 +91,7 @@ function onClose(socket){
 	console.log(message);
 	switch (message.type) {
 		case MessageType.PLAYER_JOIN:
-			onJoinMessage(message);
+			onPlayerJoinMessage(message);
 			break;
 		case MessageType.PLAYER_DATA:
 			onPlayerDataMessage(message);
@@ -116,13 +118,13 @@ function onClose(socket){
 	}
 }
 
-function onJoinMessage(message){
+function onPlayerJoinMessage(message){
 	lobbyID = message.lobbyID;
 	if(lobbyID!=null && lobbyLink.style.display==='none'){
 		lobbyLink.style.display = 'block';
 		lobbyLink.textContent += '?' + lobbyID;
 	}
-	if (message.data != null && message.data.username != null) {
+	if (message.data != null && message.data.username != null && playerDataReceived) {
 		createPlayerDiv(message.data, nextDivNum);
 	}
 }
@@ -133,6 +135,7 @@ function onPlayerDataMessage(message) {
     lobby.style.display = 'block';
     ready.style.display = 'block';
     initializePlayersInLobby(message.data);
+	playerDataReceived = true;
 }
 
 function onUsernameMessage(message) {
@@ -258,6 +261,7 @@ function createPlayerDiv(player, divNum, ownerID) {
 	var clone = original.cloneNode(true);
 	clone.id = "player" + (divNum); 
 	original.parentNode.appendChild(clone);
+	console.log(divNum);
 	
 	//get the 'name' field, change it to be this player's id
 	document.getElementById(clone.id).style.display = 'block'; //player0 may be inivisible, make sure it can be seen
@@ -267,6 +271,7 @@ function createPlayerDiv(player, divNum, ownerID) {
 	document.getElementById(clone.id).getElementsByClassName('container')[0].style.backgroundColor = '#FFFFFF';
 
 	if (player.id == ID) { //if this div is mine, 
+		console.log(ID);
 		document.getElementById(clone.id).getElementsByClassName('you')[0].style.display = 'block';
 	}
 
@@ -369,7 +374,7 @@ export const exportedForTesting = {
 	onOpen,
 	onClose,
 	websocketCallback,
-	onJoinMessage,
+	onPlayerJoinMessage,
 	onPlayerDataMessage,
 	onUsernameMessage,
 	onPlayerDataMessage,
