@@ -169,11 +169,8 @@ function onUsernameMessage(message) {
  * @param {Message} message The incoming msg
  */
 function onPlayerLeaveMessage(message) {
-	console.log('made it here');
 	if(message.data.ownerID==ID) {
-		changeSettings.style.display = 'block';
-		console.log('made it inside if');
-	}
+		settingsButton.style.display = 'block';	}
 	removePlayerDiv(message.data.id, message.data.ownerID);
 }
 
