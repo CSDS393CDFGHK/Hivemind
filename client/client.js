@@ -106,6 +106,9 @@ function onClose(socket){
 		case MessageType.SETTINGS:
 			onSettingsMessage(message);
 			break;
+		case MessageType.READY:
+			onReadyMessage(message);
+			break;
 		default:
 			console.log('Messages of type ' + message.type + ' have not been configured yet.');
 			break;
@@ -148,7 +151,7 @@ function onUsernameMessage(message) {
 
 function onPlayerLeaveMessage(message) {
 	console.log('made it here');
-	if(message.data.ownerID==ID){
+	if(message.data.ownerID==ID) {
 		changeSettings.style.display = 'block';
 		console.log('made it inside if');
 	}
@@ -156,6 +159,7 @@ function onPlayerLeaveMessage(message) {
 }
 
 function onLobbyStateMessage(message) {
+	
 }
 
 function onSettingsMessage(message) {
@@ -166,7 +170,20 @@ function onSettingsMessage(message) {
 }
 
 function onReadyMessage(message) {
+	var found = false;
+	let playerid = message.data['id'];
+	let r = message.data['ready'];
+	for (let i = 1; i <= nextDivNum && !found; i++) {
+		let div = document.getElementById('player' + i);
+		if (div != null && div.getElementsByClassName('p_id')[0].textContent == playerid) {
+			if (r && div.getElementsByClassName('check')[0].innerHTML.length == 0) //if now ready and not being displayed
+				div.getElementsByClassName('check')[0].innerHTML = '<span>&#10003;</span>'
+			else if (!r && div.getElementsByClassName('check')[0].textContent.length > 0)
+			div.getElementsByClassName('check')[0].innerHTML = ''
 
+		}
+
+	}
 }
 
 /**
@@ -235,7 +252,7 @@ function addPlayerDivs(players, numPlayers, ownerID) {
  * @param {divNum} the identifier used on the frontend to create identifiable, iterable divs
  */
 function createPlayerDiv(player, divNum, ownerID) {
-	var original = document.getElementById('player' + 0);
+	var original = document.getElementById('player0');
 
 	//copy the div, change its ID, append it 
 	var clone = original.cloneNode(true);
@@ -248,6 +265,10 @@ function createPlayerDiv(player, divNum, ownerID) {
 	document.getElementById(clone.id).getElementsByClassName('p_id')[0].textContent = player.id;
 	document.getElementById(clone.id).getElementsByClassName('dot')[0].style.backgroundColor = player.color;
 	document.getElementById(clone.id).getElementsByClassName('container')[0].style.backgroundColor = '#FFFFFF';
+
+	if (player.id == ID) { //if this div is mine, 
+		document.getElementById(clone.id).getElementsByClassName('you')[0].style.display = 'block';
+	}
 
 	if ((divNum) % 3 != 0) {
 		document.getElementById(clone.id).style.gridColumnStart = "auto";
