@@ -89,7 +89,7 @@ async function runTheTest() {
 
     // Step 7: A player whose turn it isn't leaves
     console.log("Player 3 leaving")
-    ws3.close(); await sleep(PAUSE_TIME);
+    ws3.close(); await sleep(PAUSE_TIME*4);
 
     // Step 8: more words
     console.log("Sending more words")
@@ -98,7 +98,7 @@ async function runTheTest() {
 
     // Step 8: Player whose turn it is leaves
     console.log("Player 2 leaving")
-    ws2.close(); await sleep(PAUSE_TIME);
+    ws2.close(); await sleep(PAUSE_TIME*4);
 
     // Step 9: It should now be next player's turn (player 4)
     console.log("Sending more words")
