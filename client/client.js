@@ -10,11 +10,11 @@ const ID = Utils.generateRandomString(8);
 let lobbyID = null;
 let nextDivNum = 1; //The next certainly valid number we can use for a div
 let readyStatus = false;
-let lobbyLink = null;
+let lobbyLink = document.getElementById('lobbyLink')
 //player_join can come before player_data, which can cause formatting inconsistency. This blocks that from occuring.
 let playerDataReceived = false; 
 
-//Enum to describe current page state: Not used yet, but will be
+//Enum to describe current page state
 const PageState = {
 	LANDING:'landing',
 	LOBBY:'lobby',
@@ -30,31 +30,61 @@ function initialize() {
 	socket.onmessage = websocketCallback;
 	socket.onclose = onClose;
 
-	//hide Lobby stuff initially (and game stuff once that is on here too)
-	var lobby = document.getElementById('lobby');
-	lobby.style.display = 'none';
-	var ready = document.getElementById('ready');
-	ready.style.display = 'none';
+
+	//give buttons (including those not shown) functionality
 	var createLobby = document.getElementById('CreateLobby'); 
-	var player = document.getElementById('player0');
-	player.style.display = 'none';
-	lobbyLink = document.getElementById('lobbyLink');
-	lobbyLink.style.display = 'none';
 	var readyButton = document.getElementById('readyButton');
 	var submitButton = document.getElementById('submitButton');
 	var settingsButton = document.getElementById('settingsButton');
-	settingsButton.style.display = 'none';
-	var changeSettings = document.getElementById('changeSettings');
-	changeSettings.style.display = 'none';
 	var settingsSubmitButton = document.getElementById('settingsSubmitButton');
-
-
-	//give buttons functionality
+	
 	createLobby.onclick = onCreateLobby;
 	readyButton.onclick = onReadyStatusChange;
 	submitButton.onclick = onUsernameTyped;
 	settingsButton.onclick = allowSettingsChange;
 	settingsSubmitButton.onclick = onChangeSettings;
+
+	changeState(PageState.LANDING)
+}
+
+function changeState(toState) {
+	switch (toState) {
+		case PageState.LANDING:
+			displayLandingPage();
+			break;
+		case PageState.LOBBY:
+			displayLobbyPage();
+			break;
+		case PageState.GAME:
+			displayGamePage();
+			break;
+		//when unsure, display landing 
+		default:
+			displayLandingPage();
+	}
+}
+
+function hideIDs(lis) {
+	lis.forEach(id => document.getElementById(id).style.display = 'none');
+}
+
+function showIDs(lis) {
+	lis.forEach(id => document.getElementById(id).style.display = 'block');
+}
+
+function displayLandingPage() {
+	hideIDs(['lobby', 'ready', 'player0', 'lobbyLink', 'settingsButton', 'changeSettings', 'game', 'input']);
+	showIDs(['landing']);
+}
+
+function displayLobbyPage() {
+	hideIDs(['landing', 'game']);
+	showIDs(['lobby', 'ready']);
+}
+
+function displayGamePage() {
+	hideIDs(['landing', 'game']);
+	showIDs(['game', 'input']);
 }
 
 /**
@@ -124,7 +154,7 @@ function onClose(socket){
  */
 function onPlayerJoinMessage(message){
 	lobbyID = message.lobbyID;
-	if(lobbyID!=null && lobbyLink.style.display==='none'){
+	if(lobbyID !=null && lobbyLink.style.display==='none'){
 		lobbyLink.style.display = 'block';
 		lobbyLink.textContent += '?' + lobbyID;
 	}
@@ -134,14 +164,12 @@ function onPlayerJoinMessage(message){
 }
 
 /**
- * Handle player data messages.
+ * Handle player data messages. 
+ * Player data messages are sent when a player joins a lobby, so change the state appropriately
  * @param {Message} message The incoming msg
  */
 function onPlayerDataMessage(message) {
-    var landing = document.getElementById('landing');
-    landing.style.display = 'none';
-    lobby.style.display = 'block';
-    ready.style.display = 'block';
+	changeState(PageState.LOBBY);
     initializePlayersInLobby(message.data);
 	playerDataReceived = true;
 }
@@ -170,7 +198,8 @@ function onUsernameMessage(message) {
  */
 function onPlayerLeaveMessage(message) {
 	if(message.data.ownerID==ID) {
-		settingsButton.style.display = 'block';	}
+		settingsButton.style.display = 'block';	
+	}
 	removePlayerDiv(message.data.id, message.data.ownerID);
 }
 

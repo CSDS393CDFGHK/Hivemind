@@ -76,6 +76,70 @@
 		</button>
 		<button class="button" id = "readyButton" style="margin-top: .5em">Ready</button>
 		</div>
+		<div class="game" id="game">
+			<div class="container" style="grid-auto-columns: 20em;">
+				<div class="container" style="grid-row: 1 / 10; display: block; grid-column: 1 / 6; transform: translate(0); left: 0; width: 90%;">
+					<span class="in-game-text" style="text-decoration-color: blue;">
+						My
+					</span>
+					<span class="in-game-text"style="text-decoration-color: green;">
+						mother
+					</span>
+					<span class="in-game-text"style="text-decoration-color: red;">
+						told
+					</span>
+					<span class="in-game-text"style="text-decoration-color: pink;">
+						my
+					</span>
+					<span class="in-game-text"style="text-decoration-color: blue;">
+						dad
+					</span>
+					<span class="in-game-text"style="text-decoration-color: green;">
+						he
+					</span>
+					<span class="in-game-text"style="text-decoration-color: red;">
+						sucks
+					</span>
+					<span class="in-game-text"style="text-decoration-color: pink;">
+						at
+					</span>
+					<span class="in-game-text"style="text-decoration-color: blue;">
+						cooking
+					</span>
+				</div>
+				<div class="container" style="grid-row: 1 / 10; display: block; grid-column: 7/7; transform: translate(0); left: 0; width: 10em; text-align: center;">
+					<div class="player">
+						<div class="container">
+							<span class="dot"></span>
+							<span>Travis (you)</span>
+						</div>
+					</div>
+					<div class="player">
+						<div class="container" style="background-color: #B7FFBF;">
+							<span class="dot" style="background-color: green;"></span>
+							<span>Steven</span>
+						</div>
+					</div>
+					<div class="player">
+						<div class="container">
+							<span class="dot" style="background-color: red;"></span>
+							<span>Alice</span>
+						</div>
+					</div>
+					<div class="player">
+						<div class="container">
+							<span class="dot" style="background-color: pink"></span>
+							<span>Stacy</span>
+						</div>
+					</div>					
+				</div>
+			</div>
+		</div>
+		<div class="container" id="input" style="text-align:center; width: fit-content">
+			<form style="margin: .5em;">
+				<label for="word"><b>Input Word: </b></label><input type="text" id="word" name="word">
+			</form>
+		</div>
 	</body>
 	<script type="module" src="../shared/Utils.js"></script>
 	<script type="module" src="../shared/Message.js"></script>
