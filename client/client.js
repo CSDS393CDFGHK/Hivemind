@@ -161,8 +161,8 @@ function onLobbyStateMessage(message) {
 function onSettingsMessage(message) {
 	let turnTimeLimit = message.data['turnTimeLimit'];
 	let gameLength = message.data['gameLength'];
-	document.getElementById('numSentencesDisplay').textContent = 'Number of Sentences: ' + turnTimeLimit;
-	document.getElementById('turnTimeLimitDisplay').textContent = 'Turn Time Limit: ' + gameLength + ' seconds';
+	document.getElementById('numSentencesDisplay').textContent = 'Number of Sentences: ' + gameLength;
+	document.getElementById('turnTimeLimitDisplay').textContent = 'Turn Time Limit: ' + turnTimeLimit + ' seconds';
 }
 
 function onReadyMessage(message) {
@@ -180,7 +180,6 @@ function initializePlayersInLobby(lobbyData) {
 		let ownerID = lobbyData.ownerID;
 		//by default a single player div is there at the top left with my username
 		//remove it and readd in proper place so formatting is consistent will all other players in lobby
-		removePlayerDivs(players.length); 
 		addPlayerDivs(players, players.length, ownerID);
 	}
 
@@ -204,22 +203,15 @@ function removePlayerDivs(numPlayers) {
  * @param {playerid} the ID of the player to remove
  */
 function removePlayerDiv(playerid, ownerID) {
-	var removed = false;
-	//If it's player0 we're trying to remove, set it to invisible 
-	if (document.getElementById('player0').getElementsByClassName('p_id')[0].textContent == playerid) {
-		var player0 = document.getElementById('player0');
-		player0.style.display = 'none';
-		//make sure background is white if copied, new players who join can't be leaders 
-		player0.getElementsByClassName('container')[0].style.backgroundColor = '#FFFFFF'; 
-	}
+	let found = false
 	//if other players have left, nextDivNum != numPlayers, so iterate over all possible
 	//also look for new owner, assign their color appropriately
-	for (let i = 1; i <=  nextDivNum; i++) {
+	for (let i = 1; i <=  nextDivNum && !found; i++) {
 		let div = document.getElementById('player' + i);
 		if (div != null && div.getElementsByClassName('p_id')[0].textContent == playerid) {
 			div.remove();
 		}
-		else if (div.getElementsByClassName('p_id')[0].textContent == ownerID)
+		if (div != null && div.getElementsByClassName('p_id')[0].textContent == ownerID)
 			div.getElementsByClassName('container')[0].style.backgroundColor = '#F1E5AC';
 	}
 }
@@ -232,24 +224,7 @@ function removePlayerDiv(playerid, ownerID) {
 function addPlayerDivs(players, numPlayers, ownerID) {
 	//(i - 1) = id of last player div displayed (i.e. when i == 0, no player divs have been displayed)
 	for (let i = 0; i < numPlayers; i++) {
-		if (i == 0) {
-			var player0 = document.getElementById('player0');
-			//expose the player0 div, edit the player info 
-			player0.style.display = 'block';
-			player0.style.gridColumnStart = "5";
-			player0.getElementsByClassName('name')[0].textContent = players[i].username//get the correct div, name field within div;;
-			player0.getElementsByClassName('p_id')[0].textContent = players[i].id;
-			player0.getElementsByClassName('dot')[0].style.backgroundColor = players[i].color
-			if (players[i].id == ownerID)
-				player0.getElementsByClassName('container')[0].style.backgroundColor = '#F1E5AC';
-			else 
-				player0.getElementsByClassName('container')[0].style.backgroundColor = '#FFFFFF';
-				
-		}
-		else {
-			//create div for new player 
-			createPlayerDiv(players[i], i, ownerID);
-		}
+		createPlayerDiv(players[i], i + 1, ownerID);
 	}
 	//possibly update the div num
 	nextDivNum = nextDivNum < numPlayers ? numPlayers : nextDivNum;
