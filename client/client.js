@@ -179,9 +179,13 @@ function onReadyMessage(message) {
 	for (let i = 1; i <= nextDivNum && !found; i++) {
 		let div = document.getElementById('player' + i);
 		if (div != null && div.getElementsByClassName('p_id')[0].textContent == playerid) {
-			if (r && div.getElementsByClassName('check')[0].innerHTML.length == 0) //if now ready and not being displayed
+
+			//if now ready and not being displayed, display check
+			if (r && div.getElementsByClassName('check')[0].innerHTML.length == 0) 
 				div.getElementsByClassName('check')[0].innerHTML = '<span>&#10003;</span>'
-			else if (!r && div.getElementsByClassName('check')[0].textContent.length > 0)
+			
+			//if not ready and check currently being displayed, remove it
+			else if (!r && div.getElementsByClassName('check')[0].innerHTML.length > 0)
 			div.getElementsByClassName('check')[0].innerHTML = ''
 
 		}
@@ -261,22 +265,27 @@ function createPlayerDiv(player, divNum, ownerID) {
 	var clone = original.cloneNode(true);
 	clone.id = "player" + (divNum); 
 	original.parentNode.appendChild(clone);
-	console.log(divNum);
+	let cloneDiv = document.getElementById(clone.id)
 	
 	//get the 'name' field, change it to be this player's id
-	document.getElementById(clone.id).style.display = 'block'; //player0 may be inivisible, make sure it can be seen
-	document.getElementById(clone.id).getElementsByClassName('name')[0].textContent = player.username;
-	document.getElementById(clone.id).getElementsByClassName('p_id')[0].textContent = player.id;
-	document.getElementById(clone.id).getElementsByClassName('dot')[0].style.backgroundColor = player.color;
-	document.getElementById(clone.id).getElementsByClassName('container')[0].style.backgroundColor = '#FFFFFF';
+	cloneDiv.style.display = 'block'; //player0 may be inivisible, make sure it can be seen
+	cloneDiv.getElementsByClassName('name')[0].textContent = player.username;
+	cloneDiv.getElementsByClassName('p_id')[0].textContent = player.id;
+	cloneDiv.getElementsByClassName('dot')[0].style.backgroundColor = player.color;
 
-	if (player.id == ID) { //if this div is mine, 
-		console.log(ID);
-		document.getElementById(clone.id).getElementsByClassName('you')[0].style.display = 'block';
+	if (player.id == ID) { 
+		cloneDiv.getElementsByClassName('you')[0].style.display = 'block';
+	}
+
+	if (player.id == ownerID) {
+		cloneDiv.getElementsByClassName('container')[0].style.backgroundColor = '#F1E5AC';
+	}
+	else {
+		cloneDiv.getElementsByClassName('container')[0].style.backgroundColor = '#FFFFFF';
 	}
 
 	if ((divNum) % 3 != 0) {
-		document.getElementById(clone.id).style.gridColumnStart = "auto";
+		cloneDiv.style.gridColumnStart = "auto";
 	}
 	nextDivNum++;
 }
