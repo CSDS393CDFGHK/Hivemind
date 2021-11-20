@@ -13,6 +13,7 @@ let readyStatus = false;
 let lobbyLink = document.getElementById('lobbyLink')
 //player_join can come before player_data, which can cause formatting inconsistency. This blocks that from occuring.
 let playerDataReceived = false; 
+let curState = null;
 
 //Enum to describe current page state
 const PageState = {
@@ -51,12 +52,15 @@ function changeState(toState) {
 	switch (toState) {
 		case PageState.LANDING:
 			displayLandingPage();
+			curState = PageState.LANDING;
 			break;
 		case PageState.LOBBY:
 			displayLobbyPage();
+			curState = PageState.LOBBY;
 			break;
 		case PageState.GAME:
 			displayGamePage();
+			curState =PageState.GAME;
 			break;
 		//when unsure, display landing 
 		default:
@@ -84,7 +88,7 @@ function displayLobbyPage() {
 
 function displayGamePage() {
 	hideIDs(['landing', 'game']);
-	showIDs(['game', 'input']);
+	showIDs(['game', 'input', 'ready', 'submitButton', 'readyButton']);
 }
 
 /**
@@ -152,7 +156,8 @@ function onClose(socket){
  * Handle player join messages.
  * @param {Message} message The incoming msg
  */
-function onPlayerJoinMessage(message){
+function onPlayerJoinMessage(message) {
+	/* If players can join in the middle of ongoing games, this will be incorrect and should be fixed */
 	lobbyID = message.lobbyID;
 	if(lobbyID !=null && lobbyLink.style.display==='none'){
 		lobbyLink.style.display = 'block';
@@ -208,6 +213,13 @@ function onPlayerLeaveMessage(message) {
  * @param {Message} message The incoming msg
  */
 function onLobbyStateMessage(message) {
+	let state = message.data.state == undefined ? message.data : message.data.state;
+	if (state == 'lobby' && curState != PageState.LOBBY) {
+		changeState(PageState.LOBBY);
+	}
+	if (state == 'game' && curState != PageState.GAME) {
+		changeState(PageState.GAME)
+	}
 	
 }
 
