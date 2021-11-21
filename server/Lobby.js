@@ -142,11 +142,14 @@ Lobby.prototype.handlePlayerLeave = function(msg) {
 Lobby.prototype.handleReadyChange = function(msg) {
     let player = this.getPlayer(msg.sourceID);
     player.ready = msg.data["ready"];
+    let startMsg = null;
     if(this.gameShouldStart()) {
-        this.triggerGameStart();
+        startMsg = this.triggerGameStart();
     }
+
     let readyMsg = new Message("all", "",  MessageType.READY, this.lobbyID, {"id":msg.sourceID, "ready":player.ready});
-    return [readyMsg];
+
+    return startMsg === null ? [readyMsg] : [readyMsg, startMsg];
 }
 
 /**
