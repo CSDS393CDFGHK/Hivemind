@@ -9,6 +9,7 @@ const socket = new WebSocket(SERVER_WS_LOCATION);
 const ID = Utils.generateRandomString(8);
 let lobbyID = null;
 let nextDivNum = 1; //The next certainly valid number we can use for a div
+let nextWordNum = 1; //TBH likely not necessary, we'll see
 let readyStatus = false;
 let lobbyLink = document.getElementById('lobbyLink')
 //player_join can come before player_data, which can cause formatting inconsistency. This blocks that from occuring.
@@ -60,6 +61,7 @@ function changeState(toState) {
 			break;
 		case PageState.GAME:
 			displayGamePage();
+			transferPlayerDivs();
 			curState =PageState.GAME;
 			break;
 		//when unsure, display landing 
@@ -87,8 +89,8 @@ function displayLobbyPage() {
 }
 
 function displayGamePage() {
-	hideIDs(['landing', 'game']);
-	showIDs(['game', 'input', 'ready', 'submitButton', 'readyButton']);
+	hideIDs(['landing', 'lobby', 'ready']);
+	showIDs(['game', 'input']);
 }
 
 /**
@@ -114,6 +116,12 @@ function onClose(socket){
 	 * some HTML page when an error has occurred saying "disconnected from server. Please refresh to continue" or 
 	 * something else of that effect.
 	 */
+
+	//haven't tested this, but this might work.
+	document.getElementById('main').innerHTML = "";
+	document.getElementById('main').textContent = "Disconnected from server. Please refresh the page.";
+
+
 }
 
 /**
@@ -145,10 +153,40 @@ function onClose(socket){
 		case MessageType.READY:
 			onReadyMessage(message);
 			break;
+		case MessageType.WORD:
+			onWordMessage(message);
+			break;
+		case MessageType.NEXT_TURN:
+			onNextTurnMessage(message);
+			break;
 		default:
 			console.log('Messages of type ' + message.type + ' have not been configured yet.');
 			break;
 
+	}
+}
+
+function onWordMessage(message) {
+	var word = message.data.word;
+	var original = document.getElementById('word0');
+
+	//copy the div, change its ID, append it 
+	var clone = original.cloneNode(true);
+	clone.id = "word" + nextWordNum;
+	original.parentNode.appendChild(clone);
+	let cloneDiv = document.getElementById(clone.id);
+}
+
+/**
+ * Handle next turn messages in game.
+ * @param {Message} message The incoming msg
+ */
+function onNextTurnMessage(message) {
+	var activePlayer = message.data.player;
+	if (activePlayer.id != ID) {
+		textbox = document.getElementById('wordInput');
+		textbox.value = ""; //clear what might be in text box
+		textbox.readOnly = true; //don't allow more typing
 	}
 }
 
@@ -338,6 +376,14 @@ function createPlayerDiv(player, divNum, ownerID) {
 	cloneDiv.getElementsByClassName('p_id')[0].textContent = player.id;
 	cloneDiv.getElementsByClassName('dot')[0].style.backgroundColor = player.color;
 
+	if (player.ready) {
+		cloneDiv.getElementsByClassName('check')[0].innerHTML = '<span>&#10003;</span>';
+	}
+	else {
+		cloneDiv.getElementsByClassName('check')[0].innerHTML = '';
+
+	}
+
 	if (player.id == ID) { 
 		cloneDiv.getElementsByClassName('you')[0].style.display = 'block';
 	}
@@ -437,6 +483,12 @@ function validUsername(word){
 	if(/^[\x00-\x7F]+$/.test(word)===false || /\s/g.test(word)==true) return false;
 	if(word.length > 20 || word.length < 1) return false;
 	else return true;
+}
+
+
+//TODO: player divs in lobby now become divs in game
+function transferPlayerDivs() {
+
 }
 
 initialize();

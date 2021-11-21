@@ -10,7 +10,7 @@
 		<link href="css/styles.css" rel="stylesheet">
 		<title>Hivemind</title>
 	</head>
-	<body>
+	<body id="main">
 		<div class="header">
 			<div class="container">
 				<h1>Hivemind</h1>
@@ -69,6 +69,7 @@
 				</div>
 			</div>
 		</div>
+		</div>
 		<div class="container" id="ready" style="text-align: center; width: fit-content; display: block;">
 			<label for="username">Username:</label>
 		<input type="text" id="username" autocomplete="off" name="username" required="" minlength="1" maxlength="20" size="10" placeholder="Enter username here">
@@ -79,33 +80,7 @@
 		<div class="game" id="game">
 			<div class="container" style="grid-auto-columns: 20em;">
 				<div class="container" style="grid-row: 1 / 10; display: block; grid-column: 1 / 6; transform: translate(0); left: 0; width: 90%;">
-					<span class="in-game-text" style="text-decoration-color: blue;">
-						My
-					</span>
-					<span class="in-game-text"style="text-decoration-color: green;">
-						mother
-					</span>
-					<span class="in-game-text"style="text-decoration-color: red;">
-						told
-					</span>
-					<span class="in-game-text"style="text-decoration-color: pink;">
-						my
-					</span>
-					<span class="in-game-text"style="text-decoration-color: blue;">
-						dad
-					</span>
-					<span class="in-game-text"style="text-decoration-color: green;">
-						he
-					</span>
-					<span class="in-game-text"style="text-decoration-color: red;">
-						sucks
-					</span>
-					<span class="in-game-text"style="text-decoration-color: pink;">
-						at
-					</span>
-					<span class="in-game-text"style="text-decoration-color: blue;">
-						cooking
-					</span>
+					<span class="in-game-text" id="word0" style="text-decoration-color: blue; display:none"> <!--Copy div--></span>
 				</div>
 				<div class="container" style="grid-row: 1 / 10; display: block; grid-column: 7/7; transform: translate(0); left: 0; width: 10em; text-align: center;">
 					<div class="player">
@@ -137,7 +112,7 @@
 		</div>
 		<div class="container" id="input" style="text-align:center; width: fit-content">
 			<form style="margin: .5em;">
-				<label for="word"><b>Input Word: </b></label><input type="text" id="word" name="word">
+				<label for="word"><b>Input Word: </b></label><input type="text" id="wordInput" name="word">
 			</form>
 		</div>
 	</body>
