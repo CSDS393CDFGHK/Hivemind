@@ -62,7 +62,7 @@ function changeState(toState) {
 		case PageState.GAME:
 			displayGamePage();
 			transferPlayerDivs();
-			curState =PageState.GAME;
+			curState = PageState.GAME;
 			break;
 		//when unsure, display landing 
 		default:
@@ -175,6 +175,11 @@ function onWordMessage(message) {
 	clone.id = "word" + nextWordNum;
 	original.parentNode.appendChild(clone);
 	let cloneDiv = document.getElementById(clone.id);
+	cloneDiv.innerText = word;
+
+	cloneDiv.style.display = "block";
+
+	//probably want some logic to hide previous divs
 }
 
 /**
@@ -488,7 +493,40 @@ function validUsername(word){
 
 //TODO: player divs in lobby now become divs in game
 function transferPlayerDivs() {
+	for (let i = 1; i < nextDivNum; i++) {
+		var div = document.getElementById("player" + i);
+		if (div !== null) {
+			//make new div from copy, assign ID
+			let original = document.getElementById("gamePlayer0")
+			let gameDiv = original.cloneNode(true);
 
+			original.parentNode.appendChild(gameDiv);
+
+			let lobbyDiv = document.getElementById('player' + i);
+
+			//probably could make this stuff its own function, a problem for later
+			gameDiv.getElementsByClassName('name')[0].textContent = lobbyDiv.getElementsByClassName('name')[0].textContent;
+			gameDiv.getElementsByClassName('p_id')[0].textContent = lobbyDiv.getElementsByClassName('p_id')[0].textContent;
+			gameDiv.getElementsByClassName('you')[0].textContent = lobbyDiv.getElementsByClassName('you')[0].textContent;
+			gameDiv.getElementsByClassName('dot')[0].style.backgroundColor = lobbyDiv.getElementsByClassName('dot')[0].style.backgroundColor
+
+			//this can check for visibility I'm told by stackOverflow
+			var visibility = window.getComputedStyle(lobbyDiv.getElementsByClassName("you")[0],null).getPropertyValue('display')
+			console.log(visibility)
+			if (visibility == 'block') {
+				gameDiv.getElementsByClassName('you')[0].style.display = 'block';
+			}
+			else {
+				gameDiv.getElementsByClassName('you')[0].style.display = 'none';
+
+			}
+
+			gameDiv.style.display = "block";
+
+
+			
+		}
+	}
 }
 
 initialize();
