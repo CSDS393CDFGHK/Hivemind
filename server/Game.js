@@ -5,6 +5,7 @@
  const Message = require("../shared/Message.js");
  const MessageType = require("../shared/MessageType.js");
  const Lobby = require("../server/Lobby.js");
+ const LobbyState = require("../shared/LobbyState.js");
 
 /**
  * @constructor
@@ -23,7 +24,7 @@
  * @return {Message[]} List of messages to send back to clients
  */
 Game.prototype.handleTurnTimeUp = function(msg) {
-
+    return this.nextTurn();
 }
 
 /**
@@ -31,7 +32,7 @@ Game.prototype.handleTurnTimeUp = function(msg) {
  * @return {Boolean}
  */
 Game.prototype.isGameOver = function() {
-
+    return this.numSentences >= this.lobby.settings.gameLength;
 }
 
 
@@ -46,12 +47,17 @@ Game.prototype.isGameOver = function() {
         this.words.push(word);
         let turnMsg = new Message("all", "", MessageType.NEXT_TURN, this.lobby.lobbyID, {"player": this.lobby.players[this.whoseTurn]});
         let wordMsg = new Message("all", "",  MessageType.WORD, this.lobby.lobbyID, {"word":word});
+        let shouldEndMsg;
         console.log("Player " + this.lobby.players[this.whoseTurn].id + " says: " + wordMsg.data["word"]);
         // If a sentence has ended
-        if (word.charAt(word.length - 1) == '!' || word.charAt(word.length - 1) == '.' || word.charAt(word.length - 1) == '?') {
-
-        }
         turnMsg = this.nextTurn();
+        if (word.charAt(word.length - 1) == '!' || word.charAt(word.length - 1) == '.' || word.charAt(word.length - 1) == '?') {
+            this.numSentences++;
+            if(this.isGameOver()) {
+                shouldEndMsg = this.triggerGameEnd();
+                return [wordMsg, turnMsg, shouldEndMsg];
+            }
+        }
         return [wordMsg, turnMsg];
    }
     // TODO fix later
@@ -62,7 +68,8 @@ Game.prototype.isGameOver = function() {
  * Does required actions when ending the game. State goes from GAME -> GAME_END
  */
 Game.prototype.triggerGameEnd = function() {
-
+    this.lobby.state = LobbyState.GAME_END;
+    return new Message("all", "", MessageType.LOBBY_STATE, this.lobby.lobbyID, {"state": this.lobby.state});
 }
 
 /**
