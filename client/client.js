@@ -71,6 +71,16 @@ function changeState(toState) {
 	}
 }
 
+function setUsernameCookie(username) {
+	document.cookie = `username=${username};`;
+}
+function getUsernameCookie() {
+	const value = `; ${document.cookie}`;
+  	const c = value.split("; username=");
+  	if (c.length === 2) 
+	  return c.pop().split(';').shift();
+}
+
 function hideIDs(lis) {
 	lis.forEach(id => document.getElementById(id).style.display = 'none');
 }
@@ -111,18 +121,8 @@ function onOpen(socket) {
  * @param {Socket} socket The socket that is being closed
  */
 function onClose(socket){
-	/*
-	 *TODO: If a websocket connection is closed due to idling (ex: leaving the app on mobile), then the socket connection closes.
-	 * The client's screen is stil just the lobby, with no indication that there's an issue. Probably should make 
-	 * some HTML page when an error has occurred saying "disconnected from server. Please refresh to continue" or 
-	 * something else of that effect.
-	 */
-
-	//haven't tested this, but this might work.
 	document.getElementById('main').innerHTML = "";
 	document.getElementById('main').textContent = "Disconnected from server. Please refresh the page.";
-
-
 }
 
 /**
@@ -189,10 +189,24 @@ function onWordMessage(message) {
  */
 function onNextTurnMessage(message) {
 	var activePlayer = message.data.player;
-	if (activePlayer.id != ID) {
-		textbox = document.getElementById('wordInput');
+	textbox = document.getElementById('wordInput');
+	indicateActivePlayer();
+	if (activePlayer.id == ID) {
+		textbox.readOnly = false; //allow typing 
+	}
+	else {
 		textbox.value = ""; //clear what might be in text box
 		textbox.readOnly = true; //don't allow more typing
+	}
+}
+
+function indicateActivePlayer(activePlayer) {
+	let activePlayerID = activePlayer.id;
+	for (let i = 1; i <= nextDivNum; i++) {
+		var playerDiv = document.getElementById("gamePlayer" + i);
+		if (playerDiv !== null && playerDiv.getElementsByClassName("p_id") == activePlayerID) {
+			//TODO: set border to diff color? Diff background color? idk, something to indicate it's this player's turn
+		}
 	}
 }
 
@@ -217,15 +231,6 @@ function onPlayerJoinMessage(message) {
 	}
 }
 
-function setUsernameCookie(username) {
-	document.cookie = `username=${username};`;
-}
-function getUsernameCookie() {
-	const value = `; ${document.cookie}`;
-  	const parts = value.split("; username=");
-  	if (parts.length === 2) 
-	  return parts.pop().split(';').shift();
-}
 
 /**
  * Handle player data messages. 
@@ -264,7 +269,7 @@ function onUsernameMessage(message) {
  * @param {Message} message The incoming msg
  */
 function onPlayerLeaveMessage(message) {
-	if(message.data.ownerID==ID) {
+	if(message.data.ownerID==ID && curState === PageState.LOBBY) {
 		settingsButton.style.display = 'block';	
 	}
 	removePlayerDiv(message.data.id, message.data.ownerID);
@@ -279,7 +284,7 @@ function onLobbyStateMessage(message) {
 	if (state == 'lobby' && curState != PageState.LOBBY) {
 		changeState(PageState.LOBBY);
 	}
-	if (state == 'game' && curState != PageState.GAME) {
+	else if (state == 'game' && curState != PageState.GAME) {
 		changeState(PageState.GAME)
 	}
 	
@@ -314,7 +319,7 @@ function onReadyMessage(message) {
 			
 			//if not ready and check currently being displayed, remove it
 			else if (!r && div.getElementsByClassName('check')[0].innerHTML.length > 0)
-			div.getElementsByClassName('check')[0].innerHTML = ''
+				div.getElementsByClassName('check')[0].innerHTML = ''
 
 		}
 
@@ -354,13 +359,23 @@ function removePlayerDiv(playerid, ownerID) {
 	let found = false
 	//if other players have left, nextDivNum != numPlayers, so iterate over all possible
 	//In case owner left, look for new owner, assign their color appropriately
-	for (let i = 1; i <=  nextDivNum && !found; i++) {
-		let div = document.getElementById('player' + i);
-		if (div != null && div.getElementsByClassName('p_id')[0].textContent == playerid) {
-			div.remove();
+	if (curState === PageState.LOBBY) {
+		for (let i = 1; i <=  nextDivNum && !found; i++) {
+			let div = document.getElementById('player' + i);
+			if (div != null && div.getElementsByClassName('p_id')[0].textContent == playerid) {
+				div.remove();
+			}
+			if (div != null && div.getElementsByClassName('p_id')[0].textContent == ownerID)
+				div.getElementsByClassName('container')[0].style.backgroundColor = '#F1E5AC';
 		}
-		if (div != null && div.getElementsByClassName('p_id')[0].textContent == ownerID)
-			div.getElementsByClassName('container')[0].style.backgroundColor = '#F1E5AC';
+	}
+	else if (curState === PageState.GAME) {
+		for (let i = 1; i <= nextDivNum && !found; i++) {
+			let div = document.getElementById('gamePlayer' + i);
+			if (div != null && div.getElementsByClassName('p_id')[0].textContent == playerid) {
+				div.remove();
+			}
+		}
 	}
 }
 
@@ -511,7 +526,6 @@ function validUsername(word){
 
 
 
-//TODO: player divs in lobby now become divs in game
 function transferPlayerDivs() {
 	for (let i = 1; i < nextDivNum; i++) {
 		var div = document.getElementById("player" + i);
@@ -525,12 +539,12 @@ function transferPlayerDivs() {
 			let lobbyDiv = document.getElementById('player' + i);
 
 			//probably could make this stuff its own function, a problem for later
+			gameDiv.id = "gamePlayer" + i;
 			gameDiv.getElementsByClassName('name')[0].textContent = lobbyDiv.getElementsByClassName('name')[0].textContent;
 			gameDiv.getElementsByClassName('p_id')[0].textContent = lobbyDiv.getElementsByClassName('p_id')[0].textContent;
 			gameDiv.getElementsByClassName('you')[0].textContent = lobbyDiv.getElementsByClassName('you')[0].textContent;
 			gameDiv.getElementsByClassName('dot')[0].style.backgroundColor = lobbyDiv.getElementsByClassName('dot')[0].style.backgroundColor
 
-			//this can check for visibility I'm told by stackOverflow
 			var visibility = window.getComputedStyle(lobbyDiv.getElementsByClassName("you")[0],null).getPropertyValue('display')
 			console.log(visibility)
 			if (visibility == 'block') {
@@ -540,17 +554,12 @@ function transferPlayerDivs() {
 				gameDiv.getElementsByClassName('you')[0].style.display = 'none';
 
 			}
-
-			gameDiv.style.display = "block";
-
-
-			
+			gameDiv.style.display = "block";			
 		}
 	}
 }
 
 initialize();
-
 
 /*
 Can't test with mocha normally bc you can't use
