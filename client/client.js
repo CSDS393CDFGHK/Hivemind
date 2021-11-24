@@ -208,7 +208,7 @@ function onPlayerJoinMessage(message) {
 		lobbyLink.textContent += '?' + lobbyID;
 	}
 	let savedUsername = getUsernameCookie()
-	if (savedUsername !== null) {
+	if (savedUsername !== 'undefined') {
 		let msg = new Message(0, ID, MessageType.USERNAME, lobbyID, {'username':savedUsername} );
 		socket.send(msg.toJSON());
 	}
