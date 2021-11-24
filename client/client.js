@@ -23,6 +23,7 @@ const PageState = {
 	GAME:'game'
 }
 
+
 /**
  * First function called when client.js is recieved by client.
  */
@@ -206,9 +207,24 @@ function onPlayerJoinMessage(message) {
 		lobbyLink.style.display = 'block';
 		lobbyLink.textContent += '?' + lobbyID;
 	}
+	let savedUsername = getUsernameCookie()
+	if (savedUsername !== null) {
+		let msg = new Message(0, ID, MessageType.USERNAME, lobbyID, {'username':savedUsername} );
+		socket.send(msg.toJSON());
+	}
 	if (message.data != null && message.data.username != null && playerDataReceived) {
 		createPlayerDiv(message.data, nextDivNum);
 	}
+}
+
+function setUsernameCookie(username) {
+	document.cookie = `username=${username};`;
+}
+function getUsernameCookie() {
+	const value = `; ${document.cookie}`;
+  	const parts = value.split("; username=");
+  	if (parts.length === 2) 
+	  return parts.pop().split(';').shift();
 }
 
 /**
@@ -230,6 +246,9 @@ function onUsernameMessage(message) {
 	let found = false;
 	let playerid = message.data.id;
 	let name = message.data.username;
+	if (playerid == ID) {
+		setUsernameCookie(name);
+	}
 	//iterating over divs and stopping when a boolean condition is met is done often and could be abstracted
 	for (let i = 0; i < nextDivNum && !found; i++) {
 		let div = document.getElementById('player' + i);
@@ -489,6 +508,7 @@ function validUsername(word){
 	if(word.length > 20 || word.length < 1) return false;
 	else return true;
 }
+
 
 
 //TODO: player divs in lobby now become divs in game
