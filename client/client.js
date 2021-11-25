@@ -283,8 +283,8 @@ function onUsernameMessage(message) {
 		setUsernameCookie(name);
 	}
 	//iterating over divs and stopping when a boolean condition is met is done often and could be abstracted
-	for (let i = 0; i < nextDivNum && !found; i++) {
-		let div = document.getElementById('player' + i);
+	for (let i = 0; i <= nextDivNum && !found; i++) {
+		let div = (curState === PageState.LOBBY) ? document.getElementById('player' + i) : document.getElementById('gamePlayer' + i);
 		if (div != null && div.getElementsByClassName('p_id')[0].textContent == playerid) {
 			div.getElementsByClassName('name')[0].textContent = name;
 			found = true;
