@@ -61,9 +61,9 @@ function changeState(toState) {
 			curState = PageState.LOBBY;
 			break;
 		case PageState.GAME:
+			curState = PageState.GAME;
 			displayGamePage();
 			transferPlayerDivs();
-			curState = PageState.GAME;
 			break;
 		//when unsure, display landing 
 		default:
@@ -134,6 +134,7 @@ function onClose(socket){
 	console.log(message);
 	switch (message.type) {
 		case MessageType.PLAYER_JOIN:
+			console.log('here');
 			onPlayerJoinMessage(message);
 			break;
 		case MessageType.PLAYER_DATA:
@@ -210,24 +211,51 @@ function indicateActivePlayer(activePlayer) {
 	}
 }
 
+function createGamePlayerDiv(message) {
+	//make new div from copy, assign ID
+	let player = message.data;
+	let original = document.getElementById("gamePlayer0")
+	let gameDiv = original.cloneNode(true);
+
+	original.parentNode.appendChild(gameDiv);
+
+	gameDiv.id = "gamePlayer" + nextDivNum;
+
+	gameDiv.getElementsByClassName('name')[0].textContent = player.username;
+	gameDiv.getElementsByClassName('p_id')[0].textContent = player.id;
+	gameDiv.getElementsByClassName('dot')[0].style.backgroundColor = player.color;
+
+
+	if (player.id == ID) { 
+		gameDiv.getElementsByClassName('you')[0].style.display = 'block';
+	}
+
+	gameDiv.style.display = "block";
+	nextDivNum++;
+}
+
 /**
  * Handle player join messages.
  * @param {Message} message The incoming msg
  */
 function onPlayerJoinMessage(message) {
-	/* If players can join in the middle of ongoing games, this will be incorrect and should be fixed */
 	lobbyID = message.lobbyID;
-	if(lobbyID !=null && lobbyLink.style.display==='none'){
-		lobbyLink.style.display = 'block';
-		lobbyLink.textContent += '?' + lobbyID;
+	if (curState !== PageState.GAME) {
+		if(lobbyID !=null && lobbyLink.style.display==='none'){
+			lobbyLink.style.display = 'block';
+			lobbyLink.textContent += '?' + lobbyID;
+		}
+		if (message.data != null && message.data.username != null && playerDataReceived) {
+			createPlayerDiv(message.data, nextDivNum);
+		}
+	}
+	else {
+		createGamePlayerDiv(message);
 	}
 	let savedUsername = getUsernameCookie()
 	if (savedUsername !== 'undefined') {
-		let msg = new Message(0, ID, MessageType.USERNAME, lobbyID, {'username':savedUsername} );
+		let msg = new Message(0, ID, MessageType.USERNAME, lobbyID, {'username':savedUsername});
 		socket.send(msg.toJSON());
-	}
-	if (message.data != null && message.data.username != null && playerDataReceived) {
-		createPlayerDiv(message.data, nextDivNum);
 	}
 }
 
