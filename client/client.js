@@ -47,7 +47,7 @@ function initialize() {
 	submitButton.onclick = onUsernameTyped;
 	settingsButton.onclick = allowSettingsChange;
 	settingsSubmitButton.onclick = onChangeSettings;
-	submitButton.onclick = onWordSubmit;
+	submitWordButton.onclick = onWordSubmit;
 
 	changeState(PageState.LANDING)
 }
@@ -192,8 +192,8 @@ function onWordMessage(message) {
  */
 function onNextTurnMessage(message) {
 	var activePlayer = message.data.player;
-	textbox = document.getElementById('wordInput');
-	indicateActivePlayer();
+	var textbox = document.getElementById('wordInput');
+	indicateActivePlayer(activePlayer);
 	if (activePlayer.id == ID) {
 		textbox.readOnly = false; //allow typing 
 	}
@@ -485,7 +485,7 @@ function allowSettingsChange(){
 
 function onWordSubmit() {
 	//if it's my turn, do this. TODO: Add if statement 
-	const text = document.getElementById("SubmitWord").value;
+	const text = document.getElementById("wordInput").value;
 	let msg = new Message(0, ID, MessageType.WORD, lobbyID, {'word':text});
 	socket.send(msg.toJSON());
 }
