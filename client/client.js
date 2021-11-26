@@ -53,6 +53,11 @@ function initialize() {
 	submitWordButton.onclick = onWordSubmit;
 	
 	//textbox.readOnly = true; Once the initial next_turn message is sent, this will be implemented.
+	document.getElementById('wordInput').onkeydown = function(e) {
+		if (e.key === 'Enter' && curState === PageState.GAME) {
+			onWordSubmit();
+		}
+	}
 
 	changeState(PageState.LANDING)
 }
@@ -191,9 +196,8 @@ function onWordMessage(message) {
 	cloneDiv.innerText = word;
 	cloneDiv.style.display = "inline-block";
 	nextWordNum++;
-	//probably want some logic to hide previous divs
 
-	showOnlyLast(2); //can be changed to whatever
+	showOnlyLast(1); //can be changed to whatever
 }
 
 function showOnlyLast(amount) {
@@ -431,11 +435,11 @@ function removePlayerDiv(playerid, ownerID) {
 		}
 	}
 	else if (curState === PageState.GAME || curState === PageState.GAME_END) {
-		for (let i = 1; i <= nextDivNum && !found; i++) {
+		for (let i = 1; i <= nextDivNum; i++) {
 			let div = document.getElementById('gamePlayer' + i);
 			if (div != null && div.getElementsByClassName('p_id')[0].textContent == playerid) {
 				div.remove();
-			}
+			}	
 		}
 	}
 }
