@@ -122,8 +122,14 @@ Lobby.prototype.handlePlayerJoin = function(msg) {
  */
 Lobby.prototype.handlePlayerLeave = function(msg) {
     let p = this.getPlayer(msg.sourceID);
-    this.players.splice(this.players.indexOf(p), 1); // Splice to remove 1 element from array at the player's index
-
+    index = this.players.indexOf(p);
+    this.players.splice(index, 1); // Splice to remove 1 element from array at the player's index
+    if (this.game && this.game.whoseTurn > index && this.game.whoseTurn > 0) {
+        this.game.whoseTurn--;
+    } else if (this.game && index == this.players.length) {
+        this.game.whoseTurn = 0;
+    }
+    
     if (p.id == this.ownerID && this.players.length > 0) {
         this.ownerID = this.players[0].id;
     }
@@ -188,7 +194,7 @@ Lobby.prototype.gameShouldStart = function() {
 Lobby.prototype.triggerGameStart = function() {
     console.log("Trigger game start :)");
     this.state = LobbyState.GAME;
-    this.game = new Game(this.ownerID);
+    this.game = new Game(this);
     let gameStartMsg = new Message("all", "", MessageType.LOBBY_STATE, this.lobbyID, {"state":this.state});
     return gameStartMsg;
 }
