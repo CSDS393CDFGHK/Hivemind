@@ -40,12 +40,14 @@ function initialize() {
 	var submitButton = document.getElementById('submitButton');
 	var settingsButton = document.getElementById('settingsButton');
 	var settingsSubmitButton = document.getElementById('settingsSubmitButton');
+	var submitWordButton = document.getElementById('SubmitWord');
 	
 	createLobby.onclick = onCreateLobby;
 	readyButton.onclick = onReadyStatusChange;
 	submitButton.onclick = onUsernameTyped;
 	settingsButton.onclick = allowSettingsChange;
 	settingsSubmitButton.onclick = onChangeSettings;
+	submitButton.onclick = onWordSubmit;
 
 	changeState(PageState.LANDING)
 }
@@ -479,6 +481,13 @@ function allowSettingsChange(){
 	document.getElementById('settingsInfo').style.display = 'none';
 	settingsButton.style.display = 'none';
 	changeSettings.style.display = 'block';
+}
+
+function onWordSubmit() {
+	//if it's my turn, do this. TODO: Add if statement 
+	const text = document.getElementById("SubmitWord").value;
+	let msg = new Message(0, ID, MessageType.WORD, lobbyID, {'word':text});
+	socket.send(msg.toJSON());
 }
 
 /**  Sends a CreateLobby message to the server */
