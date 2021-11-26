@@ -20,7 +20,8 @@ let curState = null;
 const PageState = {
 	LANDING:'landing',
 	LOBBY:'lobby',
-	GAME:'game'
+	GAME:'game',
+	GAME_END:'game_end'
 }
 
 
@@ -52,6 +53,7 @@ function initialize() {
 	changeState(PageState.LANDING)
 }
 
+//TODO: Switch these to shared LobbyState 
 function changeState(toState) {
 	switch (toState) {
 		case PageState.LANDING:
@@ -66,6 +68,10 @@ function changeState(toState) {
 			curState = PageState.GAME;
 			displayGamePage();
 			transferPlayerDivs();
+			break;
+		case PageState.GAME_END:
+			displayAllSentences();
+			curState = PageState.GAME_END;
 			break;
 		//when unsure, display landing 
 		default:
@@ -120,9 +126,8 @@ function onOpen(socket) {
 
 /**
  * Called when socket is closed
- * @param {Socket} socket The socket that is being closed
  */
-function onClose(socket){
+function onClose(){
 	document.getElementById('main').innerHTML = "";
 	document.getElementById('main').textContent = "Disconnected from server. Please refresh the page.";
 }
@@ -173,16 +178,14 @@ function onClose(socket){
 function onWordMessage(message) {
 	var word = message.data.word;
 	var original = document.getElementById('word0');
-
 	//copy the div, change its ID, append it 
 	var clone = original.cloneNode(true);
 	clone.id = "word" + nextWordNum;
 	original.parentNode.appendChild(clone);
 	let cloneDiv = document.getElementById(clone.id);
 	cloneDiv.innerText = word;
-
-	cloneDiv.style.display = "block";
-
+	cloneDiv.style.display = "inline-block";
+	nextWordNum++;
 	//probably want some logic to hide previous divs
 }
 
@@ -209,6 +212,7 @@ function indicateActivePlayer(activePlayer) {
 		var playerDiv = document.getElementById("gamePlayer" + i);
 		if (playerDiv !== null && playerDiv.getElementsByClassName("p_id") == activePlayerID) {
 			//TODO: set border to diff color? Diff background color? idk, something to indicate it's this player's turn
+			//Also, a next-turn message isn't sent initially from the server for the first player.
 		}
 	}
 }
@@ -242,7 +246,7 @@ function createGamePlayerDiv(message) {
  */
 function onPlayerJoinMessage(message) {
 	lobbyID = message.lobbyID;
-	if (curState !== PageState.GAME) {
+	if (curState !== PageState.GAME || curState !== PageState.GAME_END) {
 		if(lobbyID !=null && lobbyLink.style.display==='none'){
 			lobbyLink.style.display = 'block';
 			lobbyLink.textContent += '?' + lobbyID;
@@ -316,6 +320,10 @@ function onLobbyStateMessage(message) {
 	}
 	else if (state == 'game' && curState != PageState.GAME) {
 		changeState(PageState.GAME)
+	}
+	//TODO: Make game-end screen
+	else if (state === 'game_end' && curState != PageState.GAME_END) {
+		changeState(PageState.GAME_END)
 	}
 	
 }
@@ -399,7 +407,7 @@ function removePlayerDiv(playerid, ownerID) {
 				div.getElementsByClassName('container')[0].style.backgroundColor = '#F1E5AC';
 		}
 	}
-	else if (curState === PageState.GAME) {
+	else if (curState === PageState.GAME || curState === PageState.GAME_END) {
 		for (let i = 1; i <= nextDivNum && !found; i++) {
 			let div = document.getElementById('gamePlayer' + i);
 			if (div != null && div.getElementsByClassName('p_id')[0].textContent == playerid) {
@@ -559,6 +567,17 @@ function validUsername(word){
 	if(/^[\x00-\x7F]+$/.test(word)===false || /\s/g.test(word)==true) return false;
 	if(word.length > 20 || word.length < 1) return false;
 	else return true;
+}
+
+//unhide any hidden word divs
+function displayAllSentences() {
+	hideIDs(['input']);
+	for (let i = 1; i <= nextWordNum; i++) {
+		let div = document.getElementById('word' + i);
+		if (div !== null) {
+			div.style.display = 'inline-block';
+		}
+	}
 }
 
 
