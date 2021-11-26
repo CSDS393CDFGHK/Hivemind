@@ -8,15 +8,15 @@ const SERVER_WS_LOCATION = 'ws://3.144.98.109/Hivemind/startup/'; //not permanen
 const socket = new WebSocket(SERVER_WS_LOCATION);
 const ID = Utils.generateRandomString(8);
 let lobbyID = null;
-let nextDivNum = 1; //The next certainly valid number we can use for a div
-let nextWordNum = 1; //TBH likely not necessary, we'll see
+let nextDivNum = 1; //The next certainly valid number we can use for a player div
+let nextWordNum = 1; //The next certainly valid number we can use for a word div
 let readyStatus = false;
 let lobbyLink = document.getElementById('lobbyLink')
 //player_join can come before player_data, which can cause formatting inconsistency. This blocks that from occuring.
 let playerDataReceived = false; 
 let curState = null;
 
-//Enum to describe current page state
+//Enum to describe current page state. Needs to be replaced with ../shared/LobbyState.
 const PageState = {
 	LANDING:'landing',
 	LOBBY:'lobby',
@@ -42,6 +42,8 @@ function initialize() {
 	var settingsButton = document.getElementById('settingsButton');
 	var settingsSubmitButton = document.getElementById('settingsSubmitButton');
 	var submitWordButton = document.getElementById('SubmitWord');
+	var textbox = document.getElementById('wordInput');
+
 	
 	createLobby.onclick = onCreateLobby;
 	readyButton.onclick = onReadyStatusChange;
@@ -49,6 +51,8 @@ function initialize() {
 	settingsButton.onclick = allowSettingsChange;
 	settingsSubmitButton.onclick = onChangeSettings;
 	submitWordButton.onclick = onWordSubmit;
+	
+	//textbox.readOnly = true; Once the initial next_turn message is sent, this will be implemented.
 
 	changeState(PageState.LANDING)
 }
@@ -82,6 +86,7 @@ function changeState(toState) {
 function setUsernameCookie(username) {
 	document.cookie = `username=${username};`;
 }
+
 function getUsernameCookie() {
 	const value = `; ${document.cookie}`;
   	const c = value.split("; username=");
@@ -187,6 +192,17 @@ function onWordMessage(message) {
 	cloneDiv.style.display = "inline-block";
 	nextWordNum++;
 	//probably want some logic to hide previous divs
+
+	showOnlyLast(2); //can be changed to whatever
+}
+
+function showOnlyLast(amount) {
+	let lastWordNum = nextWordNum - 1;
+	let divNumToHide = lastWordNum - amount;
+	if (divNumToHide > 0) {
+		let divToHide = document.getElementById("word" + divNumToHide);
+		divToHide.style.visibility = "hidden";
+	}
 }
 
 /**
@@ -208,11 +224,18 @@ function onNextTurnMessage(message) {
 
 function indicateActivePlayer(activePlayer) {
 	let activePlayerID = activePlayer.id;
+	console.log(activePlayer)
 	for (let i = 1; i <= nextDivNum; i++) {
 		var playerDiv = document.getElementById("gamePlayer" + i);
-		if (playerDiv !== null && playerDiv.getElementsByClassName("p_id") == activePlayerID) {
-			//TODO: set border to diff color? Diff background color? idk, something to indicate it's this player's turn
-			//Also, a next-turn message isn't sent initially from the server for the first player.
+		console.log(playerDiv);
+		if (playerDiv !== null) {
+			let container = playerDiv.getElementsByClassName('container')[0];
+			if (playerDiv.getElementsByClassName("p_id")[0].textContent == activePlayerID) {
+				container.style.backgroundColor = '#A2FFA2';
+			}
+			else {
+				container.style.backgroundColor = '#FFFFFF';
+			}
 		}
 	}
 }
@@ -448,7 +471,7 @@ function createPlayerDiv(player, divNum, ownerID) {
 	let cloneDiv = document.getElementById(clone.id)
 	
 	//get the 'name' field, change it to be this player's id
-	cloneDiv.style.display = 'block'; //player0 may be inivisible, make sure it can be seen
+	cloneDiv.style.display = 'block'; 
 	cloneDiv.getElementsByClassName('name')[0].textContent = player.username;
 	cloneDiv.getElementsByClassName('p_id')[0].textContent = player.id;
 	cloneDiv.getElementsByClassName('dot')[0].style.backgroundColor = player.color;
@@ -458,7 +481,6 @@ function createPlayerDiv(player, divNum, ownerID) {
 	}
 	else {
 		cloneDiv.getElementsByClassName('check')[0].innerHTML = '';
-
 	}
 
 	if (player.id == ID) { 
@@ -480,7 +502,7 @@ function createPlayerDiv(player, divNum, ownerID) {
 
 
 /**  Called when the server indicates the game has begun. Starts the game on the client's page. */
-function handleGameStart(){
+function handleGameStart() {
 	
 }
 
@@ -492,7 +514,6 @@ function allowSettingsChange(){
 }
 
 function onWordSubmit() {
-	//if it's my turn, do this. TODO: Add if statement 
 	const text = document.getElementById("wordInput").value;
 	let msg = new Message(0, ID, MessageType.WORD, lobbyID, {'word':text});
 	socket.send(msg.toJSON());
@@ -572,15 +593,24 @@ function validUsername(word){
 //unhide any hidden word divs
 function displayAllSentences() {
 	hideIDs(['input']);
+
+	//set all divs to inactive
+	for (let i = 1; i <= nextDivNum; i++) {
+		var playerDiv = document.getElementById("gamePlayer" + i);
+		if (playerDiv !== null) {
+			let container = playerDiv.getElementsByClassName('container')[0];
+			container.style.backgroundColor = '#FFFFFF';
+		}
+	}
+
+	//show any hidden words
 	for (let i = 1; i <= nextWordNum; i++) {
 		let div = document.getElementById('word' + i);
 		if (div !== null) {
-			div.style.display = 'inline-block';
+			div.style.visibility = 'visible';
 		}
 	}
 }
-
-
 
 function transferPlayerDivs() {
 	for (let i = 1; i < nextDivNum; i++) {
