@@ -197,10 +197,14 @@ function onWordMessage(message) {
 	cloneDiv.style.display = "inline-block";
 	nextWordNum++;
 
-	showOnlyLast(1); //can be changed to whatever
+	showOnlyLast(-1); //can be changed to whatever
 }
 
 function showOnlyLast(amount) {
+	//-1 = show all
+	if (amount === -1) {
+		return;
+	}
 	let lastWordNum = nextWordNum - 1;
 	let divNumToHide = lastWordNum - amount;
 	if (divNumToHide > 0) {
