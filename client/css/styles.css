@@ -1,15 +1,6 @@
-@import url(//db.onlinewebfonts.com/c/e662339992c4abf5b43f537391bd3169?family=Candara);
-@font-face {font-family: "Candara"; 
-	src: url("//db.onlinewebfonts.com/t/e662339992c4abf5b43f537391bd3169.eot"); 
-	src: url("//db.onlinewebfonts.com/t/e662339992c4abf5b43f537391bd3169.eot?#iefix") 
-	format("embedded-opentype"), url("//db.onlinewebfonts.com/t/e662339992c4abf5b43f537391bd3169.woff2") 
-	format("woff2"), url("//db.onlinewebfonts.com/t/e662339992c4abf5b43f537391bd3169.woff") format("woff"), 
-	url("//db.onlinewebfonts.com/t/e662339992c4abf5b43f537391bd3169.ttf") format("truetype"), url("//db.onlinewebfonts.com/t/e662339992c4abf5b43f537391bd3169.svg#Candara") 
-	format("svg"); }
 body {
 	background-color: powderblue;
-	font-family: Candara;
-	
+	font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;	
 }
 h1 {
 	color: blue;
