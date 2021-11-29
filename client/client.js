@@ -290,9 +290,16 @@ function onPlayerJoinMessage(message) {
 		createGamePlayerDiv(message);
 	}
 	let savedUsername = getUsernameCookie()
-	if (savedUsername !== 'undefined') {
+	console.log(savedUsername)
+	//before ever coming to website savedCookie = undefined
+	//after coming once, and joining lobby, savedCookie = "undefined"
+	//So handle both cases
+	if (savedUsername !== undefined && savedUsername !== 'undefined') {
 		let msg = new Message(0, ID, MessageType.USERNAME, lobbyID, {'username':savedUsername});
 		socket.send(msg.toJSON());
+	}
+	else {
+
 	}
 }
 
