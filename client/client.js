@@ -503,7 +503,7 @@ function createPlayerDiv(player, divNum, ownerID) {
 	}
 
 	if (player.id == ownerID) {
-		cloneDiv.getElementsByClassName('container')[0].style.backgroundColor = '#F1E5AC';
+		cloneDiv.getElementsByClassName('container')[0].style.backgroundColor = '#CAFDC4';
 	}
 	else {
 		cloneDiv.getElementsByClassName('container')[0].style.backgroundColor = '#FFFFFF';

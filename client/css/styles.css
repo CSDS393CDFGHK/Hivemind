@@ -1,5 +1,5 @@
 body {
-	background-color: powderblue;
+	background-color: rgb(235, 235, 235);
 	font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;	
 }
 h1 {
@@ -14,16 +14,17 @@ h2 {
 h3 {
 	margin-top: .3em;
 	margin-bottom: .2em;
+	color: blue;
 }
 
 p {
-	color: red;
+	color: black;
 }
 
 .container {
-	background-color: white;
+	background-color: rgb(245, 245, 245);
 	border-width: medium;
-	border-color: red;
+	border-color: black;
 	width: 35%;
 	position: relative;
 	left: 50%;
