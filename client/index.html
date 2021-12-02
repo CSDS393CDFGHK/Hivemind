@@ -7,10 +7,11 @@
 		<!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
 		<meta name="description" content="Hivemind game website">
 		<meta name="author" content="Aracelli Doescher, Brandon Kedson, Ethan Frank, Jerry Chen, Andrew Gross, Robbie Hammond">
+		<link rel="shortcut icon" type="image/jpg" href="res/favicon.ico"/>
 		<link href="css/styles.css" rel="stylesheet">
 		<title>Hivemind</title>
 	</head>
-	<body>
+	<body id="main">
 		<div class="header">
 			<div class="container">
 				<h1>Hivemind</h1>
@@ -69,12 +70,36 @@
 				</div>
 			</div>
 		</div>
+		</div>
 		<div class="container" id="ready" style="text-align: center; width: fit-content; display: block;">
 			<label for="username">Username:</label>
 		<input type="text" id="username" autocomplete="off" name="username" required="" minlength="1" maxlength="20" size="10" placeholder="Enter username here">
 		<button class="button" id = "submitButton" style="margin-top: .5em">Submit Username
 		</button>
 		<button class="button" id = "readyButton" style="margin-top: .5em">Ready</button>
+		</div>
+		<div class="game" id="game">
+			<div class="container" style="grid-auto-columns: 20em;">
+				<div class="container" style="grid-row: 1 / 10; display: block; grid-column: 1 / 6; transform: translate(0); left: 0; width: 90%;">
+					<span class="in-game-text" id="word0" style="text-decoration-color: blue; padding: 2px; display:none"> <!--Copy div--></span>
+				</div>
+				<div class="container" style="grid-row: 1 / 10; display: block; grid-column: 7/7; transform: translate(0); left: 0; width: 10em; text-align: center;">
+					<div class="player" id="gamePlayer0" style="display: none">
+						<div class="container" style="background-color: #FFFFFF;">
+							<span class="dot"></span>
+							<span class="name"></span>
+							<div class="you" hidden>(you)</div>
+							<div class="p_id" hidden></div>
+						</div>
+					</div>			
+				</div>
+			</div>
+		</div>
+		<div class="container" id="input" style="text-align:center; width: fit-content">
+			<label for="word">Input Word:</label>
+			<input type="text" id="wordInput" autocomplete="off" name="wordInput" required="" minlength="1" maxlength="100" size="10" placeholder="Enter word here">
+
+			<button class="button" id="SubmitWord">Submit Word</button>
 		</div>
 	</body>
 	<script type="module" src="../shared/Utils.js"></script>

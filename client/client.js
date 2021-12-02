@@ -8,18 +8,22 @@ const SERVER_WS_LOCATION = 'ws://3.144.98.109/Hivemind/startup/'; //not permanen
 const socket = new WebSocket(SERVER_WS_LOCATION);
 const ID = Utils.generateRandomString(8);
 let lobbyID = null;
-let nextDivNum = 1; //The next certainly valid number we can use for a div
+let nextDivNum = 1; //The next certainly valid number we can use for a player div
+let nextWordNum = 1; //The next certainly valid number we can use for a word div
 let readyStatus = false;
-let lobbyLink = null;
+let lobbyLink = document.getElementById('lobbyLink')
 //player_join can come before player_data, which can cause formatting inconsistency. This blocks that from occuring.
 let playerDataReceived = false; 
+let curState = null;
 
-//Enum to describe current page state: Not used yet, but will be
+//Enum to describe current page state. Needs to be replaced with ../shared/LobbyState.
 const PageState = {
 	LANDING:'landing',
 	LOBBY:'lobby',
-	GAME:'game'
+	GAME:'game',
+	GAME_END:'game_end'
 }
+
 
 /**
  * First function called when client.js is recieved by client.
@@ -30,31 +34,92 @@ function initialize() {
 	socket.onmessage = websocketCallback;
 	socket.onclose = onClose;
 
-	//hide Lobby stuff initially (and game stuff once that is on here too)
-	var lobby = document.getElementById('lobby');
-	lobby.style.display = 'none';
-	var ready = document.getElementById('ready');
-	ready.style.display = 'none';
+
+	//give buttons (including those not shown) functionality
 	var createLobby = document.getElementById('CreateLobby'); 
-	var player = document.getElementById('player0');
-	player.style.display = 'none';
-	lobbyLink = document.getElementById('lobbyLink');
-	lobbyLink.style.display = 'none';
 	var readyButton = document.getElementById('readyButton');
 	var submitButton = document.getElementById('submitButton');
 	var settingsButton = document.getElementById('settingsButton');
-	settingsButton.style.display = 'none';
-	var changeSettings = document.getElementById('changeSettings');
-	changeSettings.style.display = 'none';
 	var settingsSubmitButton = document.getElementById('settingsSubmitButton');
+	var submitWordButton = document.getElementById('SubmitWord');
+	var textbox = document.getElementById('wordInput');
 
-
-	//give buttons functionality
+	
 	createLobby.onclick = onCreateLobby;
 	readyButton.onclick = onReadyStatusChange;
 	submitButton.onclick = onUsernameTyped;
 	settingsButton.onclick = allowSettingsChange;
 	settingsSubmitButton.onclick = onChangeSettings;
+	submitWordButton.onclick = onWordSubmit;
+	
+	//textbox.readOnly = true; Once the initial next_turn message is sent, this will be implemented.
+	document.getElementById('wordInput').onkeydown = function(e) {
+		if (e.key === 'Enter' && curState === PageState.GAME) {
+			onWordSubmit();
+		}
+	}
+
+	changeState(PageState.LANDING)
+}
+
+//TODO: Switch these to shared LobbyState 
+function changeState(toState) {
+	switch (toState) {
+		case PageState.LANDING:
+			displayLandingPage();
+			curState = PageState.LANDING;
+			break;
+		case PageState.LOBBY:
+			displayLobbyPage();
+			curState = PageState.LOBBY;
+			break;
+		case PageState.GAME:
+			curState = PageState.GAME;
+			displayGamePage();
+			transferPlayerDivs();
+			break;
+		case PageState.GAME_END:
+			displayAllSentences();
+			curState = PageState.GAME_END;
+			break;
+		//when unsure, display landing 
+		default:
+			displayLandingPage();
+	}
+}
+
+function setUsernameCookie(username) {
+	document.cookie = `username=${username};`;
+}
+
+function getUsernameCookie() {
+	const value = `; ${document.cookie}`;
+  	const c = value.split("; username=");
+  	if (c.length === 2) 
+	  return c.pop().split(';').shift();
+}
+
+function hideIDs(lis) {
+	lis.forEach(id => document.getElementById(id).style.display = 'none');
+}
+
+function showIDs(lis) {
+	lis.forEach(id => document.getElementById(id).style.display = 'block');
+}
+
+function displayLandingPage() {
+	hideIDs(['lobby', 'ready', 'player0', 'lobbyLink', 'settingsButton', 'changeSettings', 'game', 'input']);
+	showIDs(['landing']);
+}
+
+function displayLobbyPage() {
+	hideIDs(['landing', 'game']);
+	showIDs(['lobby', 'ready']);
+}
+
+function displayGamePage() {
+	hideIDs(['landing', 'lobby', 'ready']);
+	showIDs(['game', 'input']);
 }
 
 /**
@@ -71,15 +136,10 @@ function onOpen(socket) {
 
 /**
  * Called when socket is closed
- * @param {Socket} socket The socket that is being closed
  */
-function onClose(socket){
-	/*
-	 *TODO: If a websocket connection is closed due to idling (ex: leaving the app on mobile), then the socket connection closes.
-	 * The client's screen is stil just the lobby, with no indication that there's an issue. Probably should make 
-	 * some HTML page when an error has occurred saying "disconnected from server. Please refresh to continue" or 
-	 * something else of that effect.
-	 */
+function onClose(){
+	document.getElementById('main').innerHTML = "";
+	document.getElementById('main').textContent = "Disconnected from server. Please refresh the page.";
 }
 
 /**
@@ -91,6 +151,7 @@ function onClose(socket){
 	console.log(message);
 	switch (message.type) {
 		case MessageType.PLAYER_JOIN:
+			console.log('here');
 			onPlayerJoinMessage(message);
 			break;
 		case MessageType.PLAYER_DATA:
@@ -111,6 +172,12 @@ function onClose(socket){
 		case MessageType.READY:
 			onReadyMessage(message);
 			break;
+		case MessageType.WORD:
+			onWordMessage(message);
+			break;
+		case MessageType.NEXT_TURN:
+			onNextTurnMessage(message);
+			break;
 		default:
 			console.log('Messages of type ' + message.type + ' have not been configured yet.');
 			break;
@@ -118,30 +185,132 @@ function onClose(socket){
 	}
 }
 
-/**
- * Handle player join messages.
- * @param {Message} message The incoming msg
- */
-function onPlayerJoinMessage(message){
-	lobbyID = message.lobbyID;
-	if(lobbyID!=null && lobbyLink.style.display==='none'){
-		lobbyLink.style.display = 'block';
-		lobbyLink.textContent += '?' + lobbyID;
+function onWordMessage(message) {
+	var word = message.data.word;
+	var original = document.getElementById('word0');
+	//copy the div, change its ID, append it 
+	var clone = original.cloneNode(true);
+	clone.id = "word" + nextWordNum;
+	original.parentNode.appendChild(clone);
+	let cloneDiv = document.getElementById(clone.id);
+	cloneDiv.innerText = word;
+	cloneDiv.style.display = "inline-block";
+	nextWordNum++;
+
+	showOnlyLast(-1); //can be changed to whatever
+}
+
+function showOnlyLast(amount) {
+	//-1 = show all
+	if (amount === -1) {
+		return;
 	}
-	if (message.data != null && message.data.username != null && playerDataReceived) {
-		createPlayerDiv(message.data, nextDivNum);
+	let lastWordNum = nextWordNum - 1;
+	let divNumToHide = lastWordNum - amount;
+	if (divNumToHide > 0) {
+		let divToHide = document.getElementById("word" + divNumToHide);
+		divToHide.style.visibility = "hidden";
 	}
 }
 
 /**
- * Handle player data messages.
+ * Handle next turn messages in game.
+ * @param {Message} message The incoming msg
+ */
+function onNextTurnMessage(message) {
+	var activePlayer = message.data.player;
+	var textbox = document.getElementById('wordInput');
+	indicateActivePlayer(activePlayer);
+	if (activePlayer.id == ID) {
+		textbox.readOnly = false; //allow typing 
+	}
+	else {
+		textbox.value = ""; //clear what might be in text box
+		textbox.readOnly = true; //don't allow more typing
+	}
+}
+
+function indicateActivePlayer(activePlayer) {
+	let activePlayerID = activePlayer.id;
+	console.log(activePlayer)
+	for (let i = 1; i <= nextDivNum; i++) {
+		var playerDiv = document.getElementById("gamePlayer" + i);
+		console.log(playerDiv);
+		if (playerDiv !== null) {
+			let container = playerDiv.getElementsByClassName('container')[0];
+			if (playerDiv.getElementsByClassName("p_id")[0].textContent == activePlayerID) {
+				container.style.backgroundColor = '#A2FFA2';
+			}
+			else {
+				container.style.backgroundColor = '#FFFFFF';
+			}
+		}
+	}
+}
+
+function createGamePlayerDiv(message) {
+	//make new div from copy, assign ID
+	let player = message.data;
+	let original = document.getElementById("gamePlayer0")
+	let gameDiv = original.cloneNode(true);
+
+	original.parentNode.appendChild(gameDiv);
+
+	gameDiv.id = "gamePlayer" + nextDivNum;
+
+	gameDiv.getElementsByClassName('name')[0].textContent = player.username;
+	gameDiv.getElementsByClassName('p_id')[0].textContent = player.id;
+	gameDiv.getElementsByClassName('dot')[0].style.backgroundColor = player.color;
+
+
+	if (player.id == ID) { 
+		gameDiv.getElementsByClassName('you')[0].style.display = 'block';
+	}
+
+	gameDiv.style.display = "block";
+	nextDivNum++;
+}
+
+/**
+ * Handle player join messages.
+ * @param {Message} message The incoming msg
+ */
+function onPlayerJoinMessage(message) {
+	lobbyID = message.lobbyID;
+	if (curState !== PageState.GAME || curState !== PageState.GAME_END) {
+		if(lobbyID !=null && lobbyLink.style.display==='none'){
+			lobbyLink.style.display = 'block';
+			lobbyLink.textContent += '?' + lobbyID;
+		}
+		if (message.data != null && message.data.username != null && playerDataReceived) {
+			createPlayerDiv(message.data, nextDivNum);
+		}
+	}
+	else {
+		createGamePlayerDiv(message);
+	}
+	let savedUsername = getUsernameCookie()
+	console.log(savedUsername)
+	//before ever coming to website savedCookie = undefined
+	//after coming once, and joining lobby, savedCookie = "undefined"
+	//So handle both cases
+	if (savedUsername !== undefined && savedUsername !== 'undefined') {
+		let msg = new Message(0, ID, MessageType.USERNAME, lobbyID, {'username':savedUsername});
+		socket.send(msg.toJSON());
+	}
+	else {
+
+	}
+}
+
+
+/**
+ * Handle player data messages. 
+ * Player data messages are sent when a player joins a lobby, so change the state appropriately
  * @param {Message} message The incoming msg
  */
 function onPlayerDataMessage(message) {
-    var landing = document.getElementById('landing');
-    landing.style.display = 'none';
-    lobby.style.display = 'block';
-    ready.style.display = 'block';
+	changeState(PageState.LOBBY);
     initializePlayersInLobby(message.data);
 	playerDataReceived = true;
 }
@@ -154,9 +323,12 @@ function onUsernameMessage(message) {
 	let found = false;
 	let playerid = message.data.id;
 	let name = message.data.username;
+	if (playerid == ID) {
+		setUsernameCookie(name);
+	}
 	//iterating over divs and stopping when a boolean condition is met is done often and could be abstracted
-	for (let i = 0; i < nextDivNum && !found; i++) {
-		let div = document.getElementById('player' + i);
+	for (let i = 0; i <= nextDivNum && !found; i++) {
+		let div = (curState === PageState.LOBBY) ? document.getElementById('player' + i) : document.getElementById('gamePlayer' + i);
 		if (div != null && div.getElementsByClassName('p_id')[0].textContent == playerid) {
 			div.getElementsByClassName('name')[0].textContent = name;
 			found = true;
@@ -169,8 +341,9 @@ function onUsernameMessage(message) {
  * @param {Message} message The incoming msg
  */
 function onPlayerLeaveMessage(message) {
-	if(message.data.ownerID==ID) {
-		settingsButton.style.display = 'block';	}
+	if(message.data.ownerID==ID && curState === PageState.LOBBY) {
+		settingsButton.style.display = 'block';	
+	}
 	removePlayerDiv(message.data.id, message.data.ownerID);
 }
 
@@ -179,6 +352,17 @@ function onPlayerLeaveMessage(message) {
  * @param {Message} message The incoming msg
  */
 function onLobbyStateMessage(message) {
+	let state = message.data.state == undefined ? message.data : message.data.state;
+	if (state == 'lobby' && curState != PageState.LOBBY) {
+		changeState(PageState.LOBBY);
+	}
+	else if (state == 'game' && curState != PageState.GAME) {
+		changeState(PageState.GAME)
+	}
+	//TODO: Make game-end screen
+	else if (state === 'game_end' && curState != PageState.GAME_END) {
+		changeState(PageState.GAME_END)
+	}
 	
 }
 
@@ -211,7 +395,7 @@ function onReadyMessage(message) {
 			
 			//if not ready and check currently being displayed, remove it
 			else if (!r && div.getElementsByClassName('check')[0].innerHTML.length > 0)
-			div.getElementsByClassName('check')[0].innerHTML = ''
+				div.getElementsByClassName('check')[0].innerHTML = ''
 
 		}
 
@@ -251,13 +435,23 @@ function removePlayerDiv(playerid, ownerID) {
 	let found = false
 	//if other players have left, nextDivNum != numPlayers, so iterate over all possible
 	//In case owner left, look for new owner, assign their color appropriately
-	for (let i = 1; i <=  nextDivNum && !found; i++) {
-		let div = document.getElementById('player' + i);
-		if (div != null && div.getElementsByClassName('p_id')[0].textContent == playerid) {
-			div.remove();
+	if (curState === PageState.LOBBY) {
+		for (let i = 1; i <=  nextDivNum && !found; i++) {
+			let div = document.getElementById('player' + i);
+			if (div != null && div.getElementsByClassName('p_id')[0].textContent == playerid) {
+				div.remove();
+			}
+			if (div != null && div.getElementsByClassName('p_id')[0].textContent == ownerID)
+				div.getElementsByClassName('container')[0].style.backgroundColor = '#F1E5AC';
 		}
-		if (div != null && div.getElementsByClassName('p_id')[0].textContent == ownerID)
-			div.getElementsByClassName('container')[0].style.backgroundColor = '#F1E5AC';
+	}
+	else if (curState === PageState.GAME || curState === PageState.GAME_END) {
+		for (let i = 1; i <= nextDivNum; i++) {
+			let div = document.getElementById('gamePlayer' + i);
+			if (div != null && div.getElementsByClassName('p_id')[0].textContent == playerid) {
+				div.remove();
+			}	
+		}
 	}
 }
 
@@ -292,17 +486,24 @@ function createPlayerDiv(player, divNum, ownerID) {
 	let cloneDiv = document.getElementById(clone.id)
 	
 	//get the 'name' field, change it to be this player's id
-	cloneDiv.style.display = 'block'; //player0 may be inivisible, make sure it can be seen
+	cloneDiv.style.display = 'block'; 
 	cloneDiv.getElementsByClassName('name')[0].textContent = player.username;
 	cloneDiv.getElementsByClassName('p_id')[0].textContent = player.id;
 	cloneDiv.getElementsByClassName('dot')[0].style.backgroundColor = player.color;
+
+	if (player.ready) {
+		cloneDiv.getElementsByClassName('check')[0].innerHTML = '<span>&#10003;</span>';
+	}
+	else {
+		cloneDiv.getElementsByClassName('check')[0].innerHTML = '';
+	}
 
 	if (player.id == ID) { 
 		cloneDiv.getElementsByClassName('you')[0].style.display = 'block';
 	}
 
 	if (player.id == ownerID) {
-		cloneDiv.getElementsByClassName('container')[0].style.backgroundColor = '#F1E5AC';
+		cloneDiv.getElementsByClassName('container')[0].style.backgroundColor = '#CAFDC4';
 	}
 	else {
 		cloneDiv.getElementsByClassName('container')[0].style.backgroundColor = '#FFFFFF';
@@ -316,7 +517,7 @@ function createPlayerDiv(player, divNum, ownerID) {
 
 
 /**  Called when the server indicates the game has begun. Starts the game on the client's page. */
-function handleGameStart(){
+function handleGameStart() {
 	
 }
 
@@ -325,6 +526,12 @@ function allowSettingsChange(){
 	document.getElementById('settingsInfo').style.display = 'none';
 	settingsButton.style.display = 'none';
 	changeSettings.style.display = 'block';
+}
+
+function onWordSubmit() {
+	const text = document.getElementById("wordInput").value;
+	let msg = new Message(0, ID, MessageType.WORD, lobbyID, {'word':text});
+	socket.send(msg.toJSON());
 }
 
 /**  Sends a CreateLobby message to the server */
@@ -398,8 +605,62 @@ function validUsername(word){
 	else return true;
 }
 
-initialize();
+//unhide any hidden word divs
+function displayAllSentences() {
+	hideIDs(['input']);
 
+	//set all divs to inactive
+	for (let i = 1; i <= nextDivNum; i++) {
+		var playerDiv = document.getElementById("gamePlayer" + i);
+		if (playerDiv !== null) {
+			let container = playerDiv.getElementsByClassName('container')[0];
+			container.style.backgroundColor = '#FFFFFF';
+		}
+	}
+
+	//show any hidden words
+	for (let i = 1; i <= nextWordNum; i++) {
+		let div = document.getElementById('word' + i);
+		if (div !== null) {
+			div.style.visibility = 'visible';
+		}
+	}
+}
+
+function transferPlayerDivs() {
+	for (let i = 1; i < nextDivNum; i++) {
+		var div = document.getElementById("player" + i);
+		if (div !== null) {
+			//make new div from copy, assign ID
+			let original = document.getElementById("gamePlayer0")
+			let gameDiv = original.cloneNode(true);
+
+			original.parentNode.appendChild(gameDiv);
+
+			let lobbyDiv = document.getElementById('player' + i);
+
+			//probably could make this stuff its own function, a problem for later
+			gameDiv.id = "gamePlayer" + i;
+			gameDiv.getElementsByClassName('name')[0].textContent = lobbyDiv.getElementsByClassName('name')[0].textContent;
+			gameDiv.getElementsByClassName('p_id')[0].textContent = lobbyDiv.getElementsByClassName('p_id')[0].textContent;
+			gameDiv.getElementsByClassName('you')[0].textContent = lobbyDiv.getElementsByClassName('you')[0].textContent;
+			gameDiv.getElementsByClassName('dot')[0].style.backgroundColor = lobbyDiv.getElementsByClassName('dot')[0].style.backgroundColor
+
+			var visibility = window.getComputedStyle(lobbyDiv.getElementsByClassName("you")[0],null).getPropertyValue('display')
+			console.log(visibility)
+			if (visibility == 'block') {
+				gameDiv.getElementsByClassName('you')[0].style.display = 'block';
+			}
+			else {
+				gameDiv.getElementsByClassName('you')[0].style.display = 'none';
+
+			}
+			gameDiv.style.display = "block";			
+		}
+	}
+}
+
+initialize();
 
 /*
 Can't test with mocha normally bc you can't use
